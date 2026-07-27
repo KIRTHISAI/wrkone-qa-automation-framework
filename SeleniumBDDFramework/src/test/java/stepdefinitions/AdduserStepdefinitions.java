@@ -18,39 +18,9 @@ public class AdduserStepdefinitions  extends baseClass {
         adduser = new AdduserPage(driver);
         adduser.clickAddUser();
     }
-    
-    @When("User enters first name {string}")
-    public void user_enters_first_name(String fname) {
-        adduser.enterFirstName(fname);
-    }
-
-    @When("User enters last name {string}")
-    public void user_enters_last_name(String lname) {
-        adduser.enterLastName(lname);
-    }
-
-    @When("User enters display name {string}")
-    public void user_enters_display_name(String dname) {
-        adduser.enterDisplayName(dname);
-    }
-
-    @When("User enters email {string}")
-    public void user_enters_email(String email) {
-        adduser.enterEmail(email);
-    }
-
-    @When("User enters employee id {string}")
-    public void user_enters_employee_id(String id) {
-        adduser.enterEmployeeId(id);
-    }
-    
-    @And("User selects department")
-    public void user_selects_department() {
-        adduser.selectDepartment();
-    }
-    @When("User enters password {string}")
-    public void user_enters_password(String pwd) {
-        adduser.enterPassword(pwd);
+    @And("User enters user details")
+    public void user_enters_user_details() {
+        adduser.enterUserDetails();
     }
     @When("User clicks Create User")
     public void user_clicks_create_user() {

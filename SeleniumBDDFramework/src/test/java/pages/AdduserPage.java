@@ -9,6 +9,9 @@ import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
+import java.util.UUID;
+import java.util.Random;
+
 
 public class AdduserPage {
 
@@ -35,15 +38,33 @@ public class AdduserPage {
 
         wait.until(ExpectedConditions.elementToBeClickable(addUserButton)).click();
     }
+  
+    public void enterUserDetails() {
+
+        String fname = "User" + new Random().nextInt(1000);
+        String lname = "Test" + new Random().nextInt(1000);
+        String dname = fname + " " + lname;
+        String email = "user" + System.currentTimeMillis() + "@onelern.com";
+        String empId = String.valueOf(10000 + new Random().nextInt(90000));
+        String pwd = "123456";
+
+        enterFirstName(fname);
+        enterLastName(lname);
+        enterDisplayName(dname);
+        enterEmail(email);
+        enterEmployeeId(empId);
+        selectDepartment();
+        enterPassword(pwd);
+    }
     public void enterFirstName(String fname) {
-        driver.findElement(firstName).sendKeys(fname);
+       driver.findElement(firstName).sendKeys(fname);
     }
 
     public void enterLastName(String lname) {
         driver.findElement(lastName).sendKeys(lname);
     }
 
-    public void enterDisplayName(String dname) {
+   public void enterDisplayName(String dname) {
         driver.findElement(displayName).sendKeys(dname);
     }
 
@@ -53,10 +74,10 @@ public class AdduserPage {
 
         emailField.clear();
 
-        emailField.sendKeys(email);
+       emailField.sendKeys(email);
     }
 
-    public void enterEmployeeId(String id) {
+   public void enterEmployeeId(String id) {
 
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
@@ -66,9 +87,9 @@ public class AdduserPage {
         emp.clear();
         emp.sendKeys(id);
     }
-    public void selectDepartment() {
+   public void selectDepartment() {
 
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+       WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
         WebElement department = wait.until(
                 ExpectedConditions.visibilityOfElementLocated(By.id("department")));
@@ -81,14 +102,13 @@ public class AdduserPage {
 
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
-        WebElement passwordField =
-                wait.until(ExpectedConditions.visibilityOfElementLocated(password));
+       WebElement passwordField =
+              wait.until(ExpectedConditions.visibilityOfElementLocated(password));
 
         passwordField.clear();
-        passwordField.sendKeys(pwd);
+       passwordField.sendKeys(pwd);
     }
-       
-    public void clickCreateUser() {
+     public void clickCreateUser() {
 
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
