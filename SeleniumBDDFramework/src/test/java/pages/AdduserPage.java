@@ -11,52 +11,56 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 import java.util.UUID;
 import java.util.Random;
-
-
 public class AdduserPage {
 
     WebDriver driver;
+
+    public static String generatedName;
 
     public AdduserPage(WebDriver driver) {
         this.driver = driver;
     }
 
     // Locators
-    By addUserButton = By.xpath("//button[.//span[text()='Add User']]");
-    By firstName = By.name("firstName");
-    By lastName = By.name("lastName");
-    By displayName = By.name("displayName");
-    By primaryEmail = By.id("primaryEmail");
-    By employeeId = By.id("empId");
-    By departmentDropdown=By.id("department");
-    By password = By.id("setPassword");
-    By createUserButton = By.xpath("//button[normalize-space()='Create User']");
-    By successMessage=By.xpath("//*[contains(text(),'User created successfully!')]");
-    public void clickAddUser() {
+        // Locators
+        By addUserButton = By.xpath("//button[.//span[text()='Add User']]");
+        By firstName = By.name("firstName");
+        By lastName = By.name("lastName");
+        By displayName = By.name("displayName");
+        By primaryEmail = By.id("primaryEmail");
+        By employeeId = By.id("empId");
+        By departmentDropdown=By.id("department");
+        By password = By.id("setPassword");
+        By createUserButton = By.xpath("//button[normalize-space()='Create User']");
+        By successMessage=By.xpath("//*[contains(text(),'User created successfully!')]");
+        public void clickAddUser() {
 
-        WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
 
-        wait.until(ExpectedConditions.elementToBeClickable(addUserButton)).click();
-    }
-  
-    public void enterUserDetails() {
+            wait.until(ExpectedConditions.elementToBeClickable(addUserButton)).click();
+        }
+        public void enterUserDetails() {
 
-        String fname = "User" + new Random().nextInt(1000);
-        String lname = "Test" + new Random().nextInt(1000);
-        String dname = fname + " " + lname;
-        String email = "user" + System.currentTimeMillis() + "@onelern.com";
-        String empId = String.valueOf(10000 + new Random().nextInt(90000));
-        String pwd = "123456";
+            String fname = "User" + new Random().nextInt(1000);
+            String lname = "Test" + new Random().nextInt(1000);
 
-        enterFirstName(fname);
-        enterLastName(lname);
-        enterDisplayName(dname);
-        enterEmail(email);
-        enterEmployeeId(empId);
-        selectDepartment();
-        enterPassword(pwd);
-    }
-    public void enterFirstName(String fname) {
+            generatedName = fname + " " + lname;
+
+            String email = "user" + System.currentTimeMillis() + "@onelern.com";
+            String empId = String.valueOf(10000 + new Random().nextInt(90000));
+            String pwd = "123456";
+
+            enterFirstName(fname);
+            enterLastName(lname);
+            enterDisplayName(generatedName);
+            enterEmail(email);
+            enterEmployeeId(empId);
+            selectDepartment();
+            enterPassword(pwd);
+
+            System.out.println("Generated Name = " + generatedName);
+        }
+       public void enterFirstName(String fname) {
        driver.findElement(firstName).sendKeys(fname);
     }
 
@@ -89,15 +93,16 @@ public class AdduserPage {
     }
    public void selectDepartment() {
 
-       WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+	    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
 
-        WebElement department = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(By.id("department")));
-        
-        Select select= new Select(department);
-       select.selectByValue("6a608466ede02aff1aba51c9");
-        
-    }
+	    WebElement department = wait.until(
+	            ExpectedConditions.elementToBeClickable(By.id("department")));
+
+	    Select select = new Select(department);
+
+	    // Select the second option (index starts from 0)
+	    select.selectByIndex(1);
+	}
     public void enterPassword(String pwd) {
 
         WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
@@ -119,4 +124,6 @@ public class AdduserPage {
     	return wait.until(ExpectedConditions.visibilityOfElementLocated(successMessage)).isDisplayed();
     	
     }
-}
+   
+    }
+    

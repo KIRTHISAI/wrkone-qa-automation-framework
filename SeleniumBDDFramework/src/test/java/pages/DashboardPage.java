@@ -18,13 +18,13 @@ public class DashboardPage {
     }
 
     By userManagement = By.xpath("//span[text()='User Management']");
-    By users = By.xpath("//span[text()='Users']");
+    By usersCard = By.id("core-dashboard-button-users");
 
     public void clickUserManagement() {
         wait.until(ExpectedConditions.elementToBeClickable(userManagement)).click();
     }
 
-    public void clickUsers() {
-        wait.until(ExpectedConditions.elementToBeClickable(users)).click();
+    public void clickUsersCard() {
+        wait.until(ExpectedConditions.elementToBeClickable(usersCard)).click();
     }
 }

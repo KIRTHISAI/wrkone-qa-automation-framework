@@ -10,6 +10,11 @@ import io.github.bonigarcia.wdm.WebDriverManager;
 public class baseClass {
 
     public static WebDriver driver;
+    
+
+        public static String createdUserName;
+
+        // existing methods...
 
     public static void launchBrowser() {
 
@@ -33,7 +38,6 @@ public class baseClass {
         if (driver != null) {
 
             driver.quit();
-
             driver = null;
         }
     }

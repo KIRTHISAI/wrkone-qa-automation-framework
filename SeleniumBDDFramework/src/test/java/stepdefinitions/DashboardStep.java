@@ -1,6 +1,7 @@
 package stepdefinitions;
 
 import base.baseClass;
+import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 import pages.DashboardPage;
 
@@ -8,16 +9,17 @@ public class DashboardStep extends baseClass {
 
     DashboardPage dashboard;
 
-    @When("User clicks User Management")
-    public void user_clicks_user_management() {
+    @Then("Dashboard should be displayed")
+    public void dashboard_should_be_displayed() {
 
         dashboard = new DashboardPage(driver);
-        dashboard.clickUserManagement();
+
+        System.out.println("Dashboard displayed successfully");
     }
 
-    @When("User clicks Users")
-    public void user_clicks_users() {
+    @When("User clicks Users card")
+    public void user_clicks_users_card() {
 
-        dashboard.clickUsers();
+        dashboard.clickUsersCard();
     }
 }

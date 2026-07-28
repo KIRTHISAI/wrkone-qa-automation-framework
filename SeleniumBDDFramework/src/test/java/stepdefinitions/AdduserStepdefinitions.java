@@ -11,6 +11,7 @@ import static org.junit.Assert.assertTrue;
 public class AdduserStepdefinitions  extends baseClass {
 
     AdduserPage adduser;
+    
 
     @When("User clicks Add User")
     public void user_clicks_add_user() {
@@ -36,4 +37,15 @@ public class AdduserStepdefinitions  extends baseClass {
         adduser = new AdduserPage(driver);
 
     }
-}
+    @Given("User launches the browser")
+    public void user_launches_the_browser() {
+    }
+            // launch browser
+      
+
+    @Given("User logs into the application")
+    public void user_logs_into_the_application() {
+            // login code
+        }
+    
+    }

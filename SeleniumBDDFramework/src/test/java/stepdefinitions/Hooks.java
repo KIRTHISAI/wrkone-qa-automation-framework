@@ -25,13 +25,15 @@ public class Hooks {
 
     @Before
     public void beforeScenario(Scenario scenario) {
+
+        baseClass.launchBrowser();   // <-- Add this line
+
         test = extent.createTest(scenario.getName());
     }
-
     @After
     public void afterScenario(Scenario scenario) throws IOException {
 
-        if (scenario.isFailed()) {
+    	if (scenario.isFailed() && baseClass.driver != null) {
 
             File src = ((TakesScreenshot) baseClass.driver)
                     .getScreenshotAs(OutputType.FILE);
@@ -53,7 +55,7 @@ public class Hooks {
         extent.flush();
 
         if (baseClass.driver != null) {
-            baseClass.driver.quit();
-        }
+        	baseClass.closeBrowser();
+    }
     }
 }
