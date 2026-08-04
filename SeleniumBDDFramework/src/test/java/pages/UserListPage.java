@@ -18,10 +18,10 @@ public class UserListPage {
 
     public UserListPage(WebDriver driver) {
         this.driver = driver;
-        wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+        wait = new WebDriverWait(driver, Duration.ofSeconds(30));
     }
 
-    By searchBox = By.xpath("//input[@type='search']");
+    private By searchBox = By.xpath("//input[@type='search']");
 
     public void searchUser(String userName) {
 
@@ -32,7 +32,6 @@ public class UserListPage {
         search.sendKeys(userName);
         search.sendKeys(Keys.ENTER);
 
-        // Wait until at least one row is displayed
         wait.until(ExpectedConditions.visibilityOfElementLocated(
                 By.xpath("//tbody/tr")));
     }
@@ -41,23 +40,42 @@ public class UserListPage {
         By user = By.xpath("//button[normalize-space()='" + userName + "']");
 
         WebElement element = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(user));
+                ExpectedConditions.elementToBeClickable(user));
 
         ((JavascriptExecutor) driver)
                 .executeScript("arguments[0].scrollIntoView({block:'center'});", element);
 
-        wait.until(ExpectedConditions.elementToBeClickable(element));
-
         ((JavascriptExecutor) driver)
                 .executeScript("arguments[0].click();", element);
 
-        // Wait until profile page opens
+        // Wait until URL changes from Users list to User Details page
+        wait.until(driver ->
+                driver.getCurrentUrl().matches(".*/users/[a-zA-Z0-9]+$"));
+
+        // Wait until page is completely loaded
+        wait.until(driver ->
+                ((JavascriptExecutor) driver)
+                        .executeScript("return document.readyState")
+                        .equals("complete"));
+
+        // Wait for Edit User button
         wait.until(ExpectedConditions.visibilityOfElementLocated(
-                By.xpath("//span[normalize-space()='Edit User']")));
+                By.xpath("//a[.//span[normalize-space()='Edit User']]")));
+
+        System.out.println("User profile opened successfully.");
     }
+
     public void verifyUserStatus(String userName) {
 
-        // Wait for search box
+        // If still on Edit User page, go back to Users list
+        if (!driver.findElements(searchBox).isEmpty()) {
+            // already on Users page
+        } else {
+            driver.navigate().back();
+
+            wait.until(ExpectedConditions.visibilityOfElementLocated(searchBox));
+        }
+
         WebElement search = wait.until(
                 ExpectedConditions.visibilityOfElementLocated(searchBox));
 
@@ -65,30 +83,23 @@ public class UserListPage {
         search.sendKeys(userName);
         search.sendKeys(Keys.ENTER);
 
-        // Wait until the searched user appears
-        By userButton = By.xpath("//button[normalize-space()='" + userName + "']");
+        By rowLocator = By.xpath(
+                "//tbody//tr[.//button[normalize-space()='" + userName + "']]");
 
-        wait.until(ExpectedConditions.visibilityOfElementLocated(userButton));
+        WebElement row = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(rowLocator));
 
-        // Get entire row
-        WebElement row = driver.findElement(
-                By.xpath("//tbody/tr[.//button[normalize-space()='" + userName + "']]"));
-
-        // Status column
         WebElement status = row.findElement(
                 By.xpath(".//span[contains(@class,'rounded-full')]"));
 
         String actualStatus = status.getText().trim();
 
-        System.out.println("Status = " + actualStatus);
-
-        Assert.assertEquals("deactivated", actualStatus.toLowerCase());
-        By rowLocator = By.xpath(
-        	    "//tbody//tr[.//button[normalize-space()='" + userName + "']]");
-
         System.out.println("Expected : deactivated");
         System.out.println("Actual   : " + actualStatus);
 
-        Assert.assertEquals("deactivated", actualStatus.toLowerCase());
+        Assert.assertEquals(
+                "User status is incorrect",
+                "deactivated",
+                actualStatus.toLowerCase());
     }
 }

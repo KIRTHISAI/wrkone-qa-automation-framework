@@ -1,7 +1,9 @@
 package stepdefinitions;
 
-//import java.util.Base64;
+import java.io.File;
+import java.io.IOException;
 
+import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 
@@ -13,10 +15,7 @@ import base.baseClass;
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.Scenario;
-import java.io.File;
-import java.io.IOException;
-
-import org.apache.commons.io.FileUtils;
+import pages.LoginPage;
 
 public class Hooks {
 
@@ -26,14 +25,23 @@ public class Hooks {
     @Before
     public void beforeScenario(Scenario scenario) {
 
-        baseClass.launchBrowser();   // <-- Add this line
+        // Launch browser
+        baseClass.launchBrowser();
 
+        // Create Extent Report test
         test = extent.createTest(scenario.getName());
+
+        // Login
+        LoginPage login = new LoginPage(baseClass.driver);
+        login.enterEmail("org2.1admin@onelern.com");
+        login.enterPassword("123456");
+        login.clickLogin();
     }
+
     @After
     public void afterScenario(Scenario scenario) throws IOException {
 
-    	if (scenario.isFailed() && baseClass.driver != null) {
+        if (scenario.isFailed() && baseClass.driver != null) {
 
             File src = ((TakesScreenshot) baseClass.driver)
                     .getScreenshotAs(OutputType.FILE);
@@ -55,7 +63,7 @@ public class Hooks {
         extent.flush();
 
         if (baseClass.driver != null) {
-        	baseClass.closeBrowser();
-    }
+            baseClass.closeBrowser();
+        }
     }
 }

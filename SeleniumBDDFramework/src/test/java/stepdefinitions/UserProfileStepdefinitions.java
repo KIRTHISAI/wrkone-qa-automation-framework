@@ -4,51 +4,64 @@ import base.baseClass;
 import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
-import pages.UserProfilePage;
-import pages.UserListPage;
 import pages.AdduserPage;
+import pages.UserListPage;
+import pages.UserProfilePage;
 
 public class UserProfileStepdefinitions extends baseClass {
 
-    UserProfilePage profile;
-    UserListPage userListPage;
-    
+    private UserProfilePage profile;
+    private UserListPage userListPage;
+
+    private UserProfilePage getProfile() {
+        if (profile == null) {
+            profile = new UserProfilePage(driver);
+        }
+        return profile;
+    }
+
+    private UserListPage getUserListPage() {
+        if (userListPage == null) {
+            userListPage = new UserListPage(driver);
+        }
+        return userListPage;
+    }
+
     @And("User clicks Manage Roles")
     public void user_clicks_manage_roles() {
-        profile = new UserProfilePage(driver);
-        profile.clickManageRoles();
+        getProfile().clickManageRoles();
     }
 
     @And("User assigns QA Role")
     public void user_assigns_qa_role() {
-        profile.assignQaRole();
+        getProfile().assignQaRole();
     }
 
     @And("User clicks Update Roles")
     public void user_clicks_update_roles() {
-        profile.clickUpdateRoles();
+        getProfile().clickUpdateRoles();
     }
 
     @And("User clicks Edit User")
     public void user_clicks_edit_user() {
-        profile.clickEditUser();
+        getProfile().clickEditUser();
     }
+
     @When("User deactivates the user")
     public void user_deactivates_the_user() {
-        profile.deactivateUser();
+        getProfile().deactivateUser();
     }
+
     @And("User confirms deactivation")
     public void user_confirms_deactivation() {
-        profile.clickUpdateUser();
+        getProfile().clickUpdateUser();
     }
 
     @Then("User status should be Deactivated")
     public void user_status_should_be_Deactivated() {
 
-        userListPage = new UserListPage(driver);
-
         String userName = AdduserPage.generatedName;
 
-        userListPage.verifyUserStatus(userName);
+        getUserListPage().verifyUserStatus(userName);
     }
 }

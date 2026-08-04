@@ -1,39 +1,41 @@
 package stepdefinitions;
 
 import base.baseClass;
-import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import io.cucumber.java.en.Given;
 import pages.LoginPage;
 
 public class LoginSteps extends baseClass {
 
-    LoginPage login;
+    LoginPage login = new LoginPage(driver);
 
-    @Given("User launches browser")
-    public void user_launches_browser() {
+   
 
+    @Given("User launches the browser")
+    public void user_launches_the_browser() {
         launchBrowser();
-
         login = new LoginPage(driver);
     }
 
-    @When("User enters Email and password")
-    public void user_enters_email_and_password() {
-
-        login.enterEmail("org2.1admin@onelern.com");
-        login.enterPassword("123456");
+    @When("User enters email {string}")
+    public void user_enters_email(String email) {
+        login.enterEmail(email);
     }
 
-    @When("User clicks login button")
-    public void user_clicks_login_button() {
+    @When("User enters password {string}")
+    public void user_enters_password(String password) {
+        login.enterPassword(password);
+    }
 
+    @When("User clicks Login button")
+    public void user_clicks_Login_button() {
         login.clickLogin();
     }
 
     @Then("User should login successfully")
     public void user_should_login_successfully() {
-
         System.out.println("Login Successful");
     }
+
 }

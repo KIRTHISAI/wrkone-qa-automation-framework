@@ -7,12 +7,19 @@ import pages.DashboardPage;
 
 public class DashboardStep extends baseClass {
 
-    DashboardPage dashboard;
+    private DashboardPage dashboard;
+
+    private DashboardPage getDashboardPage() {
+        if (dashboard == null) {
+            dashboard = new DashboardPage(driver);
+        }
+        return dashboard;
+    }
 
     @Then("Dashboard should be displayed")
     public void dashboard_should_be_displayed() {
 
-        dashboard = new DashboardPage(driver);
+        getDashboardPage();
 
         System.out.println("Dashboard displayed successfully");
     }
@@ -20,6 +27,6 @@ public class DashboardStep extends baseClass {
     @When("User clicks Users card")
     public void user_clicks_users_card() {
 
-        dashboard.clickUsersCard();
+        getDashboardPage().clickUsersCard();
     }
 }

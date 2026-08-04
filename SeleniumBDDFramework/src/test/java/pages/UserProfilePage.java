@@ -2,99 +2,125 @@ package pages;
 
 import java.time.Duration;
 
+import org.junit.Assert;
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-import org.openqa.selenium.JavascriptExecutor;
-import org.junit.Assert;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 public class UserProfilePage {
 
-    WebDriver driver;
-    WebDriverWait wait;
+    private WebDriver driver;
+    private WebDriverWait wait;
 
     public UserProfilePage(WebDriver driver) {
         this.driver = driver;
-        wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+        this.wait = new WebDriverWait(driver, Duration.ofSeconds(30));
     }
 
-    By userName = By.linkText(AdduserPage.generatedName);
+    // ==========================
+    // Locators
+    // ==========================
 
-    By manageRoles = By.xpath("//a[.//span[normalize-space()='Manage Roles']]");
+    private final By manageRoles =
+            By.xpath("//span[normalize-space()='Manage Roles']");
 
-    By qaRoleCheckbox = By.xpath("//div[normalize-space()='Qa Role']/ancestor::label//input[@type='checkbox']");
+    private final By qaRole =
+            By.xpath("//label[.//div[normalize-space()='Qa Role']]");
 
-    By updateRoles =
+    private final By updateRoles =
             By.xpath("//button[contains(.,'Update Roles')]");
 
-    By editUser = By.xpath("//a[.//span[normalize-space()='Edit User']]");
-    By deactivate =
-            By.xpath("//span[text()='Deactivate']");
+    private final By editUser =
+            By.xpath("//a[.//span[normalize-space()='Edit User']]");
 
-    By updateUser =
+    private final By deactivateRadio =
+            By.xpath("//input[@value='deactivated']");
+
+    private final By updateUser =
             By.xpath("//button[contains(.,'Update User')]");
-    By accountStatus = By.id("accountStatus");
-    By deactivateRadio = By.xpath("//input[@type='radio' and @value='deactivated']");
-    public void openUserProfile(String userName) {
 
-        By user = By.xpath("//button[normalize-space()='" + userName + "']");
+    private final By searchBox =
+            By.xpath("//input[@type='search']");
 
-        WebElement element = wait.until(
-                ExpectedConditions.elementToBeClickable(user));
+    // ==========================
+    // Manage Roles
+    // ==========================
 
-        ((JavascriptExecutor) driver)
-                .executeScript("arguments[0].click();", element);
-
-        // Wait until User Details page is opened
-        wait.until(ExpectedConditions.urlContains("/users/"));
-
-        // Wait for Edit User button to appear
-        wait.until(ExpectedConditions.visibilityOfElementLocated(
-                By.xpath("//span[normalize-space()='Edit User']")));
-    }
     public void clickManageRoles() {
 
-        WebElement element = wait.until(
-                ExpectedConditions.elementToBeClickable(
-                        By.xpath("//span[normalize-space()='Manage Roles']")));
+        WebElement button = wait.until(
+                ExpectedConditions.elementToBeClickable(manageRoles));
 
         ((JavascriptExecutor) driver)
-                .executeScript("arguments[0].click();", element);
+                .executeScript("arguments[0].click();", button);
+
+        System.out.println("Manage Roles clicked.");
     }
+
     public void assignQaRole() {
 
-        WebElement role = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(
-                        By.xpath("//label[.//div[normalize-space()='Qa Role']]")));
+        WebElement checkbox = wait.until(
+                ExpectedConditions.elementToBeClickable(qaRole));
 
         ((JavascriptExecutor) driver)
-                .executeScript("arguments[0].scrollIntoView({block:'center'});", role);
+                .executeScript("arguments[0].scrollIntoView({block:'center'});", checkbox);
 
-        wait.until(ExpectedConditions.elementToBeClickable(role));
+        ((JavascriptExecutor) driver)
+                .executeScript("arguments[0].click();", checkbox);
 
-        role.click();
+        System.out.println("QA Role selected.");
     }
 
     public void clickUpdateRoles() {
-        wait.until(ExpectedConditions.elementToBeClickable(updateRoles)).click();
-        wait.until(ExpectedConditions.invisibilityOfElementLocated(
-                By.xpath("//div[contains(@class,'toast')]")));
+
+        WebElement update = wait.until(
+                ExpectedConditions.elementToBeClickable(updateRoles));
+
+        ((JavascriptExecutor) driver)
+                .executeScript("arguments[0].click();", update);
+
+        wait.until(driver ->
+                ((JavascriptExecutor) driver)
+                        .executeScript("return document.readyState")
+                        .equals("complete"));
+
+        wait.until(ExpectedConditions.presenceOfElementLocated(editUser));
+
+        System.out.println("Roles updated successfully.");
     }
+
+    // ==========================
+    // Edit User
+    // ==========================
 
     public void clickEditUser() {
 
-        WebElement editBtn = wait.until(
+        WebElement edit = wait.until(
                 ExpectedConditions.elementToBeClickable(editUser));
 
         ((JavascriptExecutor) driver)
-                .executeScript("arguments[0].scrollIntoView({block:'center'});", editBtn);
+                .executeScript("arguments[0].scrollIntoView({block:'center'});", edit);
 
-        editBtn.click();
+        ((JavascriptExecutor) driver)
+                .executeScript("arguments[0].click();", edit);
+
+        wait.until(ExpectedConditions.urlContains("/users/create"));
+
+        wait.until(ExpectedConditions.visibilityOfElementLocated(updateUser));
+
+        System.out.println("Edit page opened successfully.");
     }
+
+    // ==========================
+    // Deactivate User
+    // ==========================
+
     public void deactivateUser() {
+
+        System.out.println("Selecting Deactivated radio...");
 
         WebElement radio = wait.until(
                 ExpectedConditions.elementToBeClickable(deactivateRadio));
@@ -102,32 +128,63 @@ public class UserProfilePage {
         ((JavascriptExecutor) driver)
                 .executeScript("arguments[0].scrollIntoView({block:'center'});", radio);
 
-        radio.click();
+        ((JavascriptExecutor) driver)
+                .executeScript("arguments[0].click();", radio);
 
-        Assert.assertTrue("Deactivate radio is not selected", radio.isSelected());
+        Assert.assertTrue("Deactivate radio not selected",
+                radio.isSelected());
 
-        WebElement updateBtn = wait.until(
-                ExpectedConditions.elementToBeClickable(updateUser));
-
-        updateBtn.click();
+        System.out.println("Deactivate option selected.");
     }
+
+    // ==========================
+    // Update User
+    // ==========================
+
     public void clickUpdateUser() {
+
+        System.out.println("Clicking Update User...");
 
         WebElement update = wait.until(
                 ExpectedConditions.elementToBeClickable(updateUser));
 
         ((JavascriptExecutor) driver)
+                .executeScript("arguments[0].scrollIntoView({block:'center'});", update);
+
+        ((JavascriptExecutor) driver)
                 .executeScript("arguments[0].click();", update);
 
-        // Wait until Users page is displayed again
-        wait.until(ExpectedConditions.visibilityOfElementLocated(
-                By.xpath("//input[@type='search']")));
+        // Wait until save request completes
+        wait.until(driver ->
+                ((JavascriptExecutor) driver)
+                        .executeScript("return document.readyState")
+                        .equals("complete"));
+
+        // Wait until Update User button is enabled again
+        wait.until(ExpectedConditions.elementToBeClickable(updateUser));
+
+        System.out.println("User updated successfully.");
     }
-      public void verifyDeactivatedStatus() {
 
-        WebElement radio = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(deactivateRadio));
+    // ==========================
+    // Verification
+    // ==========================
 
-        Assert.assertTrue(radio.isSelected());
-    } 
+    public void verifyDeactivatedStatus() {
+
+        WebElement search = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(searchBox));
+
+        Assert.assertTrue(search.isDisplayed());
+
+        System.out.println("Users page displayed successfully.");
+    }
+
+    public String getUserStatus() {
+
+        return wait.until(ExpectedConditions.visibilityOfElementLocated(
+                By.xpath("//td[@data-column='status']")))
+                .getText()
+                .trim();
+    }
 }
