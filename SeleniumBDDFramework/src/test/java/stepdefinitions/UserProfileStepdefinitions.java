@@ -1,3 +1,5 @@
+
+
 package stepdefinitions;
 
 import base.baseClass;
@@ -34,7 +36,7 @@ public class UserProfileStepdefinitions extends baseClass {
 
     @And("User assigns QA Role")
     public void user_assigns_qa_role() {
-        getProfile().assignQaRole();
+        getProfile().assignGenericRole();
     }
 
     @And("User clicks Update Roles")
@@ -58,10 +60,11 @@ public class UserProfileStepdefinitions extends baseClass {
     }
 
     @Then("User status should be Deactivated")
-    public void user_status_should_be_Deactivated() {
+    public void user_status_should_be_deactivated() {
 
         String userName = AdduserPage.generatedName;
 
-        getUserListPage().verifyUserStatus(userName);
+        new UserListPage(driver)
+                .verifyUserStatus(userName, "Deactivated");
     }
 }

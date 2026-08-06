@@ -25,10 +25,10 @@ public class Hooks {
     @Before
     public void beforeScenario(Scenario scenario) {
 
-        // Launch browser
+        // Launch Browser
         baseClass.launchBrowser();
 
-        // Create Extent Report test
+        // Create Extent Report Test
         test = extent.createTest(scenario.getName());
 
         // Login
@@ -46,17 +46,29 @@ public class Hooks {
             File src = ((TakesScreenshot) baseClass.driver)
                     .getScreenshotAs(OutputType.FILE);
 
-            String screenshotPath = "test-output/screenshots/"
-                    + scenario.getName().replaceAll(" ", "_")
-                    + ".png";
+            // Create screenshots folder if it doesn't exist
+            File folder = new File("test-output/screenshots");
+            if (!folder.exists()) {
+                folder.mkdirs();
+            }
+
+            // Remove all invalid filename characters
+            String safeFileName = scenario.getName()
+                    .replaceAll("[\\\\/:*?\"<>|]", "_")
+                    .replaceAll("\\s+", "_");
+
+            String screenshotPath =
+                    "test-output/screenshots/" + safeFileName + ".png";
 
             File dest = new File(screenshotPath);
+
             FileUtils.copyFile(src, dest);
 
             test.fail("Scenario Failed");
             test.addScreenCaptureFromPath(dest.getAbsolutePath());
 
         } else {
+
             test.pass("Scenario Passed");
         }
 

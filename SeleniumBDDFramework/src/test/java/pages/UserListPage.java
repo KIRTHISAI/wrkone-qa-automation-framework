@@ -18,11 +18,14 @@ public class UserListPage {
 
     public UserListPage(WebDriver driver) {
         this.driver = driver;
-        wait = new WebDriverWait(driver, Duration.ofSeconds(30));
+        this.wait = new WebDriverWait(driver, Duration.ofSeconds(30));
     }
 
     private By searchBox = By.xpath("//input[@type='search']");
 
+    /**
+     * Search user from Users list
+     */
     public void searchUser(String userName) {
 
         WebElement search = wait.until(
@@ -35,6 +38,10 @@ public class UserListPage {
         wait.until(ExpectedConditions.visibilityOfElementLocated(
                 By.xpath("//tbody/tr")));
     }
+
+    /**
+     * Open User Profile
+     */
     public void openUserProfile(String userName) {
 
         By user = By.xpath("//button[normalize-space()='" + userName + "']");
@@ -48,33 +55,26 @@ public class UserListPage {
         ((JavascriptExecutor) driver)
                 .executeScript("arguments[0].click();", element);
 
-        // Wait until URL changes from Users list to User Details page
-        wait.until(driver ->
-                driver.getCurrentUrl().matches(".*/users/[a-zA-Z0-9]+$"));
-
-        // Wait until page is completely loaded
+        // Wait for page to finish loading
         wait.until(driver ->
                 ((JavascriptExecutor) driver)
                         .executeScript("return document.readyState")
                         .equals("complete"));
 
-        // Wait for Edit User button
+        // Wait until Edit User button is visible
         wait.until(ExpectedConditions.visibilityOfElementLocated(
                 By.xpath("//a[.//span[normalize-space()='Edit User']]")));
 
         System.out.println("User profile opened successfully.");
     }
 
-    public void verifyUserStatus(String userName) {
-
-        // If still on Edit User page, go back to Users list
-        if (!driver.findElements(searchBox).isEmpty()) {
-            // already on Users page
-        } else {
-            driver.navigate().back();
-
-            wait.until(ExpectedConditions.visibilityOfElementLocated(searchBox));
-        }
+    /**
+     * Verify User Status after Deactivation
+     */
+    /**
+     * Verify User Status
+     */
+    public void verifyUserStatus(String userName, String expectedStatus) {
 
         WebElement search = wait.until(
                 ExpectedConditions.visibilityOfElementLocated(searchBox));
@@ -83,23 +83,20 @@ public class UserListPage {
         search.sendKeys(userName);
         search.sendKeys(Keys.ENTER);
 
-        By rowLocator = By.xpath(
-                "//tbody//tr[.//button[normalize-space()='" + userName + "']]");
+        By statusLocator = By.xpath(
+            "//button[normalize-space()='" + userName + "']" +
+            "/ancestor::tr//span[contains(@class,'rounded-full')]");
 
-        WebElement row = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(rowLocator));
-
-        WebElement status = row.findElement(
-                By.xpath(".//span[contains(@class,'rounded-full')]"));
+        WebElement status = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(statusLocator));
 
         String actualStatus = status.getText().trim();
 
-        System.out.println("Expected : deactivated");
+        System.out.println("Expected : " + expectedStatus);
         System.out.println("Actual   : " + actualStatus);
 
         Assert.assertEquals(
-                "User status is incorrect",
-                "deactivated",
+                expectedStatus.toLowerCase(),
                 actualStatus.toLowerCase());
     }
 }

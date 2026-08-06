@@ -20,7 +20,6 @@ public class DashboardStep extends baseClass {
     public void dashboard_should_be_displayed() {
 
         getDashboardPage();
-
         System.out.println("Dashboard displayed successfully");
     }
 
@@ -28,5 +27,14 @@ public class DashboardStep extends baseClass {
     public void user_clicks_users_card() {
 
         getDashboardPage().clickUsersCard();
+    }
+
+    @Then("User navigates to Users page")
+    public void user_navigates_to_users_page() {
+
+        getDashboardPage().clickUserManagement();
+        getDashboardPage().clickUsersCard();
+
+        System.out.println("Navigated to Users page successfully.");
     }
 }

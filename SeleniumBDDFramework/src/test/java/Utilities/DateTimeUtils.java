@@ -11,27 +11,39 @@ public class DateTimeUtils {
     private static final DateTimeFormatter DATE_FORMAT =
             DateTimeFormatter.ofPattern("dd-MM-yyyy");
 
-    private static final DateTimeFormatter TIME_FORMAT =
-            DateTimeFormatter.ofPattern("hh:mm a");
+    private static final DateTimeFormatter DISPLAY_TIME =
+            DateTimeFormatter.ofPattern("h:mm a");
 
-    // Current date or future date
+    // Date
     public static String getDate(int daysToAdd) {
         return LocalDate.now()
                 .plusDays(daysToAdd)
                 .format(DATE_FORMAT);
     }
 
-    // Start Time
-    public static String getStartTime(int minutesToAdd) {
+    // Returns "10:00 AM"
+    public static String getStartTime(int hoursToAdd) {
         return LocalTime.now()
-                .plusMinutes(minutesToAdd)
-                .format(TIME_FORMAT);
+                .plusHours(hoursToAdd)
+                .withMinute(0)
+                .format(DISPLAY_TIME);
     }
 
-    // End Time
+    // Returns "11:00 AM"
     public static String getEndTime(int hoursToAdd) {
         return LocalTime.now()
                 .plusHours(hoursToAdd)
-                .format(TIME_FORMAT);
+                .withMinute(0)
+                .format(DISPLAY_TIME);
+    }
+
+    // Returns quick-time-10_00_AM
+    public static String getQuickTimeId(int hoursToAdd) {
+
+        String time = getStartTime(hoursToAdd);
+
+        return "quick-time-"
+                + time.replace(":", "_")
+                      .replace(" ", "_");
     }
 }

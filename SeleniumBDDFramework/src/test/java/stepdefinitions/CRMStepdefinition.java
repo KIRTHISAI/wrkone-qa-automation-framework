@@ -1,9 +1,10 @@
 package stepdefinitions;
 
+import Utilities.ExcelUtils;
 import base.baseClass;
-import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
+import model.CRMActivity;
 import pages.CRMPage;
 
 public class CRMStepdefinition extends baseClass {
@@ -52,56 +53,18 @@ public class CRMStepdefinition extends baseClass {
     }
 
     // ===========================
-    // Activity Details
+    // Create Activity From Excel
     // ===========================
+    @When("User creates CRM Activity from Excel row {int}")
+    public void userCreatesCRMActivity(int row) {
 
-    @When("User selects activity type {string}")
-    public void userSelectsActivityType(String activityType) {
-        getCRMPage().selectActivityType(activityType);
+        CRMActivity activity = ExcelUtils.getCRMActivity(row);
+
+        getCRMPage().createActivity(activity);
     }
-
-    @When("User enters Purpose {string}")
-    public void userEntersPurpose(String purpose) {
-        getCRMPage().enterPurpose(purpose);
-    }
-
-    @When("User enters Description {string}")
-    public void userEntersDescription(String description) {
-        getCRMPage().enterDescription(description);
-    }
-
     // ===========================
-    // Schedule
+    // Verification
     // ===========================
-
-    @When("User selects date after 10 days")
-    public void userSelectsDateAfter10Days() {
-        getCRMPage().selectDate(10);
-    }
-
-    @When("User selects Start Time")
-    public void userSelectsStartTime() {
-        getCRMPage().selectStartTime("quick-time-10_00_AM");
-    }
-
-    @When("User selects End Time")
-    public void userSelectsEndTime() {
-        getCRMPage().selectEndTime("quick-time-11_00_AM");
-    }
-
-    // ===========================
-    // Assignment
-    // ===========================
-
-    @And("User selects Assignment Type")
-    public void userSelectsAssignmentType() {
-        getCRMPage().selectAssignmentType();
-    }
-
-    @And("User clicks Create Activity Button")
-    public void userClicksCreateActivityButton() {
-        getCRMPage().clickCreateActivityButton();
-    }
 
     @Then("Activity should be created successfully")
     public void activityShouldBeCreatedSuccessfully() {

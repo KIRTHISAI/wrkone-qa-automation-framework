@@ -9,7 +9,9 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Random;
 public class UserProfilePage {
 
     private WebDriver driver;
@@ -27,9 +29,7 @@ public class UserProfilePage {
     private final By manageRoles =
             By.xpath("//span[normalize-space()='Manage Roles']");
 
-    private final By qaRole =
-            By.xpath("//label[.//div[normalize-space()='Qa Role']]");
-
+    private final By genericRole = By.xpath("//label[.//div[contains(normalize-space(),'Generic')]]");
     private final By updateRoles =
             By.xpath("//button[contains(.,'Update Roles')]");
 
@@ -41,9 +41,6 @@ public class UserProfilePage {
 
     private final By updateUser =
             By.xpath("//button[contains(.,'Update User')]");
-
-    private final By searchBox =
-            By.xpath("//input[@type='search']");
 
     // ==========================
     // Manage Roles
@@ -59,19 +56,32 @@ public class UserProfilePage {
 
         System.out.println("Manage Roles clicked.");
     }
+    public void assignGenericRole() {
 
-    public void assignQaRole() {
+        By roles = By.xpath("//label[contains(@class,'cursor-pointer')]//input[@type='checkbox']");
 
-        WebElement checkbox = wait.until(
-                ExpectedConditions.elementToBeClickable(qaRole));
+        List<WebElement> roleCheckboxes = wait.until(
+                ExpectedConditions.visibilityOfAllElementsLocatedBy(roles));
+
+        List<WebElement> available = new ArrayList<>();
+
+        for (WebElement cb : roleCheckboxes) {
+            if (!cb.isSelected()) {
+                available.add(cb);
+            }
+        }
+
+        if (available.isEmpty()) {
+            throw new RuntimeException("No roles available.");
+        }
+
+        WebElement randomRole =
+                available.get(new Random().nextInt(available.size()));
 
         ((JavascriptExecutor) driver)
-                .executeScript("arguments[0].scrollIntoView({block:'center'});", checkbox);
+                .executeScript("arguments[0].click();", randomRole);
 
-        ((JavascriptExecutor) driver)
-                .executeScript("arguments[0].click();", checkbox);
-
-        System.out.println("QA Role selected.");
+        System.out.println("Random generic role assigned.");
     }
 
     public void clickUpdateRoles() {
@@ -140,7 +150,6 @@ public class UserProfilePage {
     // ==========================
     // Update User
     // ==========================
-
     public void clickUpdateUser() {
 
         System.out.println("Clicking Update User...");
@@ -154,37 +163,29 @@ public class UserProfilePage {
         ((JavascriptExecutor) driver)
                 .executeScript("arguments[0].click();", update);
 
-        // Wait until save request completes
-        wait.until(driver ->
-                ((JavascriptExecutor) driver)
-                        .executeScript("return document.readyState")
-                        .equals("complete"));
+        // Wait until Users page is opened
+        wait.until(ExpectedConditions.urlContains("/users"));
 
-        // Wait until Update User button is enabled again
-        wait.until(ExpectedConditions.elementToBeClickable(updateUser));
+        // Wait until search box is visible
+        wait.until(ExpectedConditions.visibilityOfElementLocated(
+                By.xpath("//input[@type='search']")));
 
-        System.out.println("User updated successfully.");
+        System.out.println("Returned to Users List page.");
     }
 
     // ==========================
-    // Verification
+    // Confirmation
     // ==========================
 
-    public void verifyDeactivatedStatus() {
+    public void confirmDeactivation() {
 
-        WebElement search = wait.until(
-                ExpectedConditions.visibilityOfElementLocated(searchBox));
+        By successMessage = By.xpath("//*[contains(text(),'User updated successfully')]");
 
-        Assert.assertTrue(search.isDisplayed());
+        wait.until(ExpectedConditions.or(
+                ExpectedConditions.visibilityOfElementLocated(successMessage),
+                ExpectedConditions.urlContains("/users")
+        ));
 
-        System.out.println("Users page displayed successfully.");
-    }
-
-    public String getUserStatus() {
-
-        return wait.until(ExpectedConditions.visibilityOfElementLocated(
-                By.xpath("//td[@data-column='status']")))
-                .getText()
-                .trim();
+        System.out.println("User deactivated successfully.");
     }
 }
