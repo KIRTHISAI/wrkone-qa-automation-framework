@@ -10,7 +10,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
-
+import org.openqa.selenium.StaleElementReferenceException;
 public class UserListPage {
 
     WebDriver driver;
@@ -44,36 +44,156 @@ public class UserListPage {
      */
     public void openUserProfile(String userName) {
 
-        By user = By.xpath("//button[normalize-space()='" + userName + "']");
+        System.out.println("Opening user profile for: " + userName);
 
-        WebElement element = wait.until(
-                ExpectedConditions.elementToBeClickable(user));
+        By userLocator = By.xpath(
+                "//button[normalize-space()='" + userName + "']"
+        );
 
-        ((JavascriptExecutor) driver)
-                .executeScript("arguments[0].scrollIntoView({block:'center'});", element);
+        int maxAttempts = 3;
 
-        ((JavascriptExecutor) driver)
-                .executeScript("arguments[0].click();", element);
+        for (int attempt = 1; attempt <= maxAttempts; attempt++) {
 
-        // Wait for page to finish loading
-        wait.until(driver ->
-                ((JavascriptExecutor) driver)
-                        .executeScript("return document.readyState")
-                        .equals("complete"));
+            try {
 
-        // Wait until Edit User button is visible
-        wait.until(ExpectedConditions.visibilityOfElementLocated(
-                By.xpath("//a[.//span[normalize-space()='Edit User']]")));
+                System.out.println(
+                        "Attempt " + attempt +
+                        " to open profile for: " + userName
+                );
 
-        System.out.println("User profile opened successfully.");
+                // -------------------------------------------------
+                // 1. Wait until user is present
+                // -------------------------------------------------
+                wait.until(
+                        ExpectedConditions.presenceOfElementLocated(
+                                userLocator
+                        )
+                );
+
+                System.out.println(
+                        "User found: " + userName
+                );
+
+                // -------------------------------------------------
+                // 2. Find the user element
+                // -------------------------------------------------
+                WebElement userElement = driver.findElement(
+                        userLocator
+                );
+
+                // -------------------------------------------------
+                // 3. Scroll user into view
+                // -------------------------------------------------
+                ((JavascriptExecutor) driver).executeScript(
+                        "arguments[0].scrollIntoView({block:'center', inline:'nearest'});",
+                        userElement
+                );
+
+                Thread.sleep(500);
+
+                // -------------------------------------------------
+                // 4. Re-find the element after scrolling
+                // -------------------------------------------------
+                userElement = wait.until(
+                        ExpectedConditions.presenceOfElementLocated(
+                                userLocator
+                        )
+                );
+
+                // -------------------------------------------------
+                // 5. Click user using JavaScript
+                // -------------------------------------------------
+                ((JavascriptExecutor) driver).executeScript(
+                        "arguments[0].click();",
+                        userElement
+                );
+
+                System.out.println(
+                        "User clicked successfully: " + userName
+                );
+
+                // -------------------------------------------------
+                // 6. Wait for page to finish loading
+                // -------------------------------------------------
+                wait.until(driver -> {
+
+                    Object state = ((JavascriptExecutor) driver)
+                            .executeScript(
+                                    "return document.readyState"
+                            );
+
+                    return "complete".equals(state);
+                });
+
+                // -------------------------------------------------
+                // 7. Wait for Edit User button
+                // -------------------------------------------------
+                By editUserButton = By.xpath(
+                        "//a[.//span[normalize-space()='Edit User']]" +
+                        " | //button[normalize-space()='Edit User']" +
+                        " | //*[@role='button' and normalize-space()='Edit User']"
+                );
+
+                wait.until(
+                        ExpectedConditions.visibilityOfElementLocated(
+                                editUserButton
+                        )
+                );
+
+                System.out.println(
+                        "User profile opened successfully."
+                );
+
+                return;
+
+            } catch (StaleElementReferenceException e) {
+
+                System.out.println(
+                        "Stale element detected on attempt "
+                        + attempt +
+                        ". Re-finding user..."
+                );
+
+                // If this was the final attempt, fail the test
+                if (attempt == maxAttempts) {
+                    throw e;
+                }
+
+                try {
+
+                    Thread.sleep(1000);
+
+                } catch (InterruptedException ie) {
+
+                    Thread.currentThread().interrupt();
+
+                    throw new RuntimeException(
+                            "Thread interrupted while retrying user profile",
+                            ie
+                    );
+                }
+
+            } catch (Exception e) {
+
+                System.out.println(
+                        "Failed to open user profile."
+                );
+
+                System.out.println(
+                        "User Name = " + userName
+                );
+
+                System.out.println(
+                        "Current URL = " + driver.getCurrentUrl()
+                );
+
+                throw new RuntimeException(
+                        "Failed to open user profile for: " + userName,
+                        e
+                );
+            }
+        }
     }
-
-    /**
-     * Verify User Status after Deactivation
-     */
-    /**
-     * Verify User Status
-     */
     public void verifyUserStatus(String userName, String expectedStatus) {
 
         WebElement search = wait.until(

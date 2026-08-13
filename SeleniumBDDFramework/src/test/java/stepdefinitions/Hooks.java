@@ -1,81 +1,248 @@
 package stepdefinitions;
 
 import java.io.File;
-import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
-import org.apache.commons.io.FileUtils;
-import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.OutputType;
 
-import com.aventstack.extentreports.ExtentReports;
-import com.aventstack.extentreports.ExtentTest;
-
-import Utilities.ExtentManager;
 import base.baseClass;
+import Utilities.ExtentManager;
+
 import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.Scenario;
-import pages.LoginPage;
 
-public class Hooks {
+import com.aventstack.extentreports.MediaEntityBuilder;
 
-    private static ExtentReports extent = ExtentManager.getInstance();
-    private static ExtentTest test;
+public class Hooks extends baseClass {
+
+    // ============================================================
+    // BEFORE SCENARIO
+    // ============================================================
 
     @Before
     public void beforeScenario(Scenario scenario) {
 
-        // Launch Browser
-        baseClass.launchBrowser();
+        System.out.println("======================================");
+        System.out.println(
+                "Starting Scenario: " + scenario.getName());
+        System.out.println("Starting browser...");
 
-        // Create Extent Report Test
-        test = extent.createTest(scenario.getName());
+        loadConfig();
 
-        // Login
-        LoginPage login = new LoginPage(baseClass.driver);
-        login.enterEmail("org2.1admin@onelern.com");
-        login.enterPassword("123456");
-        login.clickLogin();
+        launchBrowser1();
+
+        System.out.println("Scenario browser ready.");
+
+        // --------------------------------------------------------
+        // CREATE EXTENT TEST
+        // --------------------------------------------------------
+
+        ExtentManager.createTest(scenario.getName());
+
+        ExtentManager.info(
+                "Scenario started: " + scenario.getName());
+
+        ExtentManager.info("Browser: Chrome");
+
+        try {
+
+            ExtentManager.info(
+                    "Current URL: "
+                            + getDriver().getCurrentUrl());
+
+        } catch (Exception e) {
+
+            ExtentManager.info(
+                    "Unable to read current URL");
+        }
+
+        System.out.println("======================================");
     }
 
+
+    // ============================================================
+    // AFTER SCENARIO
+    // ============================================================
+
     @After
-    public void afterScenario(Scenario scenario) throws IOException {
+    public void afterScenario(Scenario scenario) {
 
-        if (scenario.isFailed() && baseClass.driver != null) {
+        System.out.println(
+                "Scenario completed: "
+                        + scenario.getName());
 
-            File src = ((TakesScreenshot) baseClass.driver)
-                    .getScreenshotAs(OutputType.FILE);
+        WebDriver currentDriver = null;
 
-            // Create screenshots folder if it doesn't exist
-            File folder = new File("test-output/screenshots");
-            if (!folder.exists()) {
-                folder.mkdirs();
+        try {
+
+            currentDriver = getDriver();
+
+        } catch (Exception e) {
+
+            System.out.println(
+                    "No active browser found.");
+        }
+
+
+        // ========================================================
+        // FAILURE
+        // ========================================================
+
+        if (scenario.isFailed()) {
+
+            System.out.println(
+                    "Scenario FAILED.");
+
+            ExtentManager.fail(
+                    "Scenario Failed: "
+                            + scenario.getName());
+
+
+            // ----------------------------------------------------
+            // CAPTURE FAILURE SCREENSHOT
+            // ----------------------------------------------------
+
+            if (currentDriver != null) {
+
+                try {
+
+                    String timestamp =
+                            new SimpleDateFormat(
+                                    "yyyyMMdd_HHmmss_SSS")
+                                    .format(new Date());
+
+                    String scenarioName =
+                            scenario.getName()
+                                    .replaceAll(
+                                            "[^a-zA-Z0-9_-]",
+                                            "_");
+
+                    String screenshotDirectory =
+                            System.getProperty("user.dir")
+                                    + File.separator
+                                    + "test-output"
+                                    + File.separator
+                                    + "screenshots";
+
+                    File directory =
+                            new File(
+                                    screenshotDirectory);
+
+                    if (!directory.exists()) {
+
+                        directory.mkdirs();
+                    }
+
+
+                    String screenshotPath =
+                            screenshotDirectory
+                                    + File.separator
+                                    + scenarioName
+                                    + "_"
+                                    + timestamp
+                                    + ".png";
+
+
+                    // ------------------------------------------------
+                    // SAVE SCREENSHOT AS PNG
+                    // ------------------------------------------------
+
+                    File screenshot =
+                            ((TakesScreenshot) currentDriver)
+                                    .getScreenshotAs(
+                                            OutputType.FILE);
+
+
+                    File destination =
+                            new File(
+                                    screenshotPath);
+
+                    java.nio.file.Files.copy(
+                            screenshot.toPath(),
+                            destination.toPath(),
+                            java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+
+                    // ------------------------------------------------
+                    // ATTACH PNG DIRECTLY TO EXTENT
+                    // ------------------------------------------------
+
+                    ExtentManager.getTest().fail(
+                            "Failure Screenshot",
+                            MediaEntityBuilder
+                                    .createScreenCaptureFromPath(
+                                            screenshotPath)
+                                    .build()
+                    );
+
+
+                    // ------------------------------------------------
+                    // ATTACH TO CUCUMBER
+                    // ------------------------------------------------
+
+                    byte[] screenshotBytes =
+                            java.nio.file.Files.readAllBytes(
+                                    destination.toPath());
+
+                    scenario.attach(
+                            screenshotBytes,
+                            "image/png",
+                            "Failure Screenshot");
+
+
+                    System.out.println(
+                            "Failure screenshot saved: "
+                                    + screenshotPath);
+
+                } catch (Exception e) {
+
+                    System.out.println(
+                            "Unable to capture failure screenshot: "
+                                    + e.getMessage());
+
+                    ExtentManager.fail(
+                            "Unable to capture failure screenshot: "
+                                    + e.getMessage());
+                }
             }
-
-            // Remove all invalid filename characters
-            String safeFileName = scenario.getName()
-                    .replaceAll("[\\\\/:*?\"<>|]", "_")
-                    .replaceAll("\\s+", "_");
-
-            String screenshotPath =
-                    "test-output/screenshots/" + safeFileName + ".png";
-
-            File dest = new File(screenshotPath);
-
-            FileUtils.copyFile(src, dest);
-
-            test.fail("Scenario Failed");
-            test.addScreenCaptureFromPath(dest.getAbsolutePath());
-
-        } else {
-
-            test.pass("Scenario Passed");
         }
 
-        extent.flush();
 
-        if (baseClass.driver != null) {
-            baseClass.closeBrowser();
+        // ========================================================
+        // PASS
+        // ========================================================
+
+        else {
+
+            ExtentManager.pass(
+                    "Scenario Passed: "
+                            + scenario.getName());
         }
+
+
+        // ========================================================
+        // FLUSH EXTENT REPORT
+        // ========================================================
+
+        ExtentManager.flush();
+
+        ExtentManager.removeTest();
+
+
+        // ========================================================
+        // CLOSE BROWSER
+        // ========================================================
+
+        closeBrowser();
+
+        System.out.println(
+                "Browser cleanup completed.");
+
+        System.out.println(
+                "======================================");
     }
 }

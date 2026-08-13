@@ -23,6 +23,18 @@ public class UserListSteps extends baseClass {
     @And("User opens the user profile")
     public void openUserProfile() {
 
+        System.out.println(
+                "Generated User Name = [" + AdduserPage.generatedName + "]"
+        );
+
+        if (AdduserPage.generatedName == null ||
+                AdduserPage.generatedName.trim().isEmpty()) {
+
+            throw new RuntimeException(
+                    "Generated user name is NULL or EMPTY"
+            );
+        }
+
         userList.openUserProfile(AdduserPage.generatedName);
     }
 }

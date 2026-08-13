@@ -12,15 +12,16 @@ public class CRMActivity {
     private String user;
     private String reason;
 
-    public CRMActivity(String activityType,
-                       String purpose,
-                       String description,
-                       String date,
-                       String startTime,
-                       String endTime,
-                       String assignmentType,
-                       String user,
-                       String reason) {
+    public CRMActivity(
+            String activityType,
+            String purpose,
+            String description,
+            String date,
+            String startTime,
+            String endTime,
+            String assignmentType,
+            String user,
+            String reason) {
 
         this.activityType = activityType;
         this.purpose = purpose;
