@@ -11,6 +11,7 @@ import org.openqa.selenium.support.ui.WebDriverWait;
 import Utilities.ExcelUtils;
 import base.baseClass;
 
+import io.cucumber.java.en.And;
 import io.cucumber.java.en.Then;
 import io.cucumber.java.en.When;
 
@@ -278,11 +279,6 @@ public class CRMStepdefinition extends baseClass {
     // LINKED CRM LOGIN
     // ============================================================
 
-    private String safe(String AssignmentType) {
-	// TODO Auto-generated method stub
-	return null;
-}
-
 	@When("User logs in for Linked Activity")
     public void userLogsInForLinkedActivity() {
 
@@ -307,112 +303,94 @@ public class CRMStepdefinition extends baseClass {
     // LINKED CRM ACTIVITY FROM EXCEL
     // ============================================================
 
-	@When("User creates Linked CRM Activity from Excel row {int}")
-	public void userCreatesLinkedCRMActivityFromExcel(
-	        int rowNumber) {
+    @When("User creates Linked CRM Activity from Excel row {int}")
+    public void userCreatesLinkedCRMActivityFromExcel(int rowNumber) {
 
-	    System.out.println(
-	            "======================================"
-	    );
+        System.out.println("======================================");
+        System.out.println("Reading Linked CRM Activity Excel Row = " + rowNumber);
 
-	    System.out.println(
-	            "Reading Linked CRM Activity Excel Row = "
-	                    + rowNumber
-	    );
+        LinkedCRMActivity activity =
+                ExcelUtils.getLinkedCRMActivity(rowNumber);
 
-	    LinkedCRMActivity activity =
-	            ExcelUtils.getLinkedCRMActivity(
-	                    rowNumber
-	            );
+        if (activity == null) {
+            throw new RuntimeException(
+                    "Linked CRM Activity data is null for Excel row " + rowNumber);
+        }
 
-	    if (activity == null) {
+        String activityType = activity.getActivityType();
+        String purpose = activity.getPurpose();
 
-	        throw new RuntimeException(
-	                "Linked CRM Activity data is null for Excel row "
-	                        + rowNumber
-	        );
-	    }
+        activityType = activityType == null ? "" : activityType.trim();
+        purpose = purpose == null ? "" : purpose.trim();
 
-	    // ========================================================
-	    // GET ACTIVITY DETAILS
-	    // ========================================================
+        String reportName =
+                "Create Linked CRM Activity - " + activityType + " - " + purpose;
 
-	    String activityType =
-	            activity.getActivityType();
+        ExtentManager.createTest(reportName);
+        ExtentManager.info("Excel Row: " + rowNumber);
+        ExtentManager.info("Activity Type: " + activityType);
+        ExtentManager.info("Purpose: " + purpose);
 
-	    String purpose =
-	            activity.getPurpose();
+        System.out.println("Report Name = " + reportName);
 
-	    if (activityType == null) {
-	        activityType = "";
-	    }
+        getCRMPage().createLinkedActivity(activity);
 
-	    if (purpose == null) {
-	        purpose = "";
-	    }
+        ExtentManager.info("Linked CRM Activity creation completed.");
+        System.out.println("Linked CRM Activity creation completed.");
+        System.out.println("======================================");
+    }
 
-	    activityType = activityType.trim();
-	    purpose = purpose.trim();
+    // ============================================================
+    // EDIT CRM ACTIVITY FROM EXCEL
+    // ============================================================
 
-	    // ========================================================
-	    // CREATE REPORT TEST
-	    // ========================================================
+    @And("User handles CRM Activity edit from Excel row {int}")
+    public void userHandlesCRMActivityEditFromExcelRow(int rowNumber) {
 
-	    String reportName =
-	            "Create Linked CRM Activity"
-	            + " - "
-	            + activityType
-	            + " - "
-	            + purpose;
+        System.out.println("==========================================");
+        System.out.println("Checking Edit Requirement");
+        System.out.println("Excel Row = " + rowNumber);
 
-	    ExtentManager.createTest(
-	            reportName
-	    );
+        CRMActivity activity = ExcelUtils.getCRMActivity(rowNumber);
 
-	    ExtentManager.info(
-	            "Excel Row: "
-	                    + rowNumber
-	    );
+        if (activity == null) {
+            throw new RuntimeException(
+                    "CRM Activity data is null for Excel row " + rowNumber);
+        }
 
-	    ExtentManager.info(
-	            "Activity Type: "
-	                    + activityType
-	    );
+        String editRequired = activity.getEditRequired();
+        editRequired = editRequired == null ? "" : editRequired.trim();
 
-	    ExtentManager.info(
-	            "Purpose: "
-	                    + purpose
-	    );
+        System.out.println("Edit Required = [" + editRequired + "]");
 
-	    System.out.println(
-	            "Report Name = "
-	                    + reportName
-	    );
+        if (!"Yes".equalsIgnoreCase(editRequired)) {
+            System.out.println(
+                    "Edit Required = NO. Skipping Activity Edit for row " + rowNumber);
+            System.out.println("==========================================");
+            return;
+        }
 
-	    // ========================================================
-	    // CREATE LINKED ACTIVITY
-	    // ========================================================
+        String currentPurpose = activity.getPurpose();
+        String editPurpose = activity.getEditPurpose();
+        String editDescription = activity.getEditDescription();
 
-	    getCRMPage().createLinkedActivity(
-	            activity
-	    );
+        System.out.println("Edit Required = YES");
+        System.out.println("Current Purpose = " + currentPurpose);
+        System.out.println("Edit Purpose = " + editPurpose);
+        System.out.println("Edit Description = " + editDescription);
 
-	    // ========================================================
-	    // REPORT LOG
-	    // ========================================================
+        getCRMPage().editActivity(
+                currentPurpose,
+                editPurpose,
+                editDescription);
 
-	    ExtentManager.info(
-	            "Linked CRM Activity creation completed."
-	    );
+        ExtentManager.pass(
+                "Activity edited successfully. New Purpose = " + editPurpose);
 
-	    System.out.println(
-	            "Linked CRM Activity creation completed."
-	    );
-
-	    System.out.println(
-	            "======================================"
-	    );
-	}
+        System.out.println(
+                "Activity Edit completed successfully for row " + rowNumber);
+        System.out.println("==========================================");
+    }
 
     // ============================================================
     // VERIFY NORMAL CRM ACTIVITY

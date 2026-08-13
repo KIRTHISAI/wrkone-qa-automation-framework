@@ -86,6 +86,16 @@ public class CRMPage {
             By.id("btn-submit");
 
     // ============================================================
+    // EDIT / UPDATE ACTIVITY
+    // ============================================================
+
+    private final By updateActivityButton =
+            By.id("btn-update");
+
+    private final By updateButtonByText =
+            By.xpath("//button[normalize-space()='Update' or normalize-space()='Update Activity' or normalize-space()='Save']");
+
+    // ============================================================
     // LINKED ACTIVITY
     // ============================================================
 
@@ -3126,6 +3136,221 @@ public class CRMPage {
 
         return value.trim();
     }
+    public void editActivity(
+            String currentPurpose,
+            String editPurpose,
+            String editDescription) {
+
+        System.out.println("==========================================");
+        System.out.println("Starting Activity Edit");
+        System.out.println("Current Purpose = " + currentPurpose);
+        System.out.println("New Purpose = " + editPurpose);
+        System.out.println("New Description = " + editDescription);
+
+        if (currentPurpose == null || currentPurpose.trim().isEmpty()) {
+            throw new IllegalArgumentException("Current Purpose cannot be empty for edit.");
+        }
+        if (editPurpose == null || editPurpose.trim().isEmpty()) {
+            throw new IllegalArgumentException("Edit Purpose cannot be empty.");
+        }
+
+        String current = currentPurpose.trim();
+
+        // --------------------------------------------------------
+        // FIND CREATED ACTIVITY
+        // --------------------------------------------------------
+        By purposeLocator = By.xpath(
+                "//*[normalize-space()=" + xpathLiteral(current) + "]");
+
+        WebElement purposeElement = waitForVisible(purposeLocator);
+        scrollTo(purposeElement);
+
+        // --------------------------------------------------------
+        // FIND THE ACTIONS BUTTON IN THE SAME ACTIVITY ROW
+        // --------------------------------------------------------
+        WebElement actionsButton = null;
+
+        try {
+            WebElement row = purposeElement.findElement(By.xpath("./ancestor::tr[1]"));
+            actionsButton = findDisplayedButton(row);
+        } catch (Exception ignored) {
+            // Some versions render activities as div/card rows instead of <tr>.
+        }
+
+        if (actionsButton == null) {
+            try {
+                WebElement container = purposeElement.findElement(
+                        By.xpath("./ancestor::*[.//button][1]"));
+                actionsButton = findDisplayedButton(container);
+            } catch (Exception ignored) {
+                // fallback below
+            }
+        }
+
+        if (actionsButton == null) {
+            throw new IllegalStateException(
+                    "Unable to find Actions/More button for activity with purpose: " + current);
+        }
+
+        scrollTo(actionsButton);
+        clickElement(actionsButton);
+        System.out.println("Actions menu opened successfully.");
+
+        // --------------------------------------------------------
+        // CLICK EDIT
+        // --------------------------------------------------------
+        By editLocator = By.xpath(
+                "//*[self::button or self::a or @role='menuitem'][normalize-space()='Edit']");
+
+        WebElement editButton = waitForVisible(editLocator);
+        scrollTo(editButton);
+        clickElement(editButton);
+
+        System.out.println("Edit Activity page opened.");
+
+        // --------------------------------------------------------
+        // WAIT FOR EDIT FORM
+        // --------------------------------------------------------
+        //wait.until(driver -> {
+            //try {
+                //return driver.findElements(purpose).stream().anyMatch(WebElement::isDisplayed)
+                       // && driver.findElements(description).stream().anyMatch(WebElement::isDisplayed);
+            //} catch (Exception e) {
+              //  return false;
+            //}
+       // });
+
+        // --------------------------------------------------------
+        // UPDATE PURPOSE / DESCRIPTION
+        // --------------------------------------------------------
+        enterPurpose(editPurpose.trim());
+        System.out.println("Purpose updated successfully.");
+
+        enterDescription(editDescription == null ? "" : editDescription.trim());
+        System.out.println("Description updated successfully.");
+
+        // --------------------------------------------------------
+        // UPDATE BUTTON
+        // --------------------------------------------------------
+        clickUpdateActivityButton();
+
+        System.out.println("Update Activity button clicked.");
+
+        // --------------------------------------------------------
+        // VERIFY UPDATE
+        // --------------------------------------------------------
+        verifyActivityUpdated(editPurpose.trim(), editDescription == null ? "" : editDescription.trim());
+    }
+
+    /**
+     * Finds the first visible button in a row/container that looks like
+     * an Actions / More menu button.
+     */
+    private WebElement findDisplayedButton(WebElement container) {
+        try {
+            List<WebElement> buttons = container.findElements(By.xpath(".//button"));
+            for (WebElement button : buttons) {
+                try {
+                    if (!button.isDisplayed()) {
+                        continue;
+                    }
+                    String aria = button.getAttribute("aria-label");
+                    String title = button.getAttribute("title");
+                    String text = getElementText(button);
+
+                    String value = ((aria == null ? "" : aria) + " "
+                            + (title == null ? "" : title) + " "
+                            + (text == null ? "" : text)).toLowerCase(Locale.ENGLISH);
+
+                    if (value.contains("action") || value.contains("more")
+                            || value.contains("menu") || text == null || text.trim().isEmpty()) {
+                        return button;
+                    }
+                } catch (StaleElementReferenceException ignored) {
+                }
+            }
+        } catch (Exception ignored) {
+        }
+        return null;
+    }
+
+    /**
+     * The application has used more than one update-button locator.
+     * Try the stable id first, then visible button text, and finally the
+     * existing submit id when the edit screen reuses the create button.
+     */
+    private void clickUpdateActivityButton() {
+
+        By[] candidates = new By[] {
+                updateActivityButton,
+                updateButtonByText,
+                By.xpath("//button[contains(normalize-space(),'Update') or contains(normalize-space(),'Save')]") ,
+                By.id("btn-submit")
+        };
+
+        Exception lastException = null;
+
+        for (By locator : candidates) {
+            try {
+                WebElement button = wait.until(driver -> {
+                    try {
+                        for (WebElement element : driver.findElements(locator)) {
+                            if (element.isDisplayed() && element.isEnabled()) {
+                                return element;
+                            }
+                        }
+                    } catch (Exception ignored) {
+                    }
+                    return null;
+                });
+
+                scrollTo(button);
+                clickElement(button);
+                return;
+
+            } catch (Exception e) {
+                lastException = e;
+            }
+        }
+
+        throw new IllegalStateException(
+                "Unable to find/click the Activity Update button. "
+                        + "Checked btn-update, Update/Save text buttons and btn-submit.",
+                lastException);
+    }
+
+    public void verifyActivityUpdated(
+            String expectedPurpose,
+            String expectedDescription) {
+
+        System.out.println("Verifying Activity update...");
+
+        By updatedPurpose = By.xpath(
+                "//*[normalize-space()=" + xpathLiteral(expectedPurpose) + "]");
+
+        // First prefer the application success notification.
+        By successMessage = By.xpath(
+                "//*[contains(translate(normalize-space(.),"
+                        + "'abcdefghijklmnopqrstuvwxyz','ABCDEFGHIJKLMNOPQRSTUVWXYZ'),"
+                        + "'ACTIVITY') and contains(translate(normalize-space(.),"
+                        + "'abcdefghijklmnopqrstuvwxyz','ABCDEFGHIJKLMNOPQRSTUVWXYZ'),"
+                        + "'UPDATED')]" );
+
+        try {
+            wait.until(ExpectedConditions.or(
+                    ExpectedConditions.visibilityOfElementLocated(successMessage),
+                    ExpectedConditions.visibilityOfElementLocated(updatedPurpose)
+            ));
+        } catch (TimeoutException e) {
+            throw new AssertionError(
+                    "Activity update could not be verified. Expected purpose = "
+                            + expectedPurpose,
+                    e);
+        }
+
+        System.out.println("Updated Purpose verified = " + expectedPurpose);
+        System.out.println("Activity updated successfully.");
+    }
 
     // ============================================================
     // XPATH LITERAL
@@ -3180,4 +3405,5 @@ public class CRMPage {
 
         return result.toString();
     }
+    
 }

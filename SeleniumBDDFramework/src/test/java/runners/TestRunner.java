@@ -8,7 +8,7 @@ import io.cucumber.junit.CucumberOptions;
 @RunWith(Cucumber.class)
 @CucumberOptions(
 
-        features = "src/test/resources/features/1UserManagement.feature",
+        features = "src/test/resources/features/AUT-ACT-001_CRMActivityCreation.feature",
 
         glue = {
                 "stepdefinitions"

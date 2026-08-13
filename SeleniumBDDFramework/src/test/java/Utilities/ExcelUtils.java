@@ -98,86 +98,122 @@ public class ExcelUtils {
 
     // =========================================================
     // GENERAL CRM ACTIVITY
-    // DO NOT CHANGE
     // =========================================================
 
     public static CRMActivity getCRMActivity(int row) {
 
+        System.out.println(
+                "==========================================");
+
+        System.out.println(
+                "Reading General Activity Excel Row: "
+                        + row);
+
+        System.out.println(
+                "==========================================");
+
+
         return new CRMActivity(
 
+                // -------------------------------------------------
+                // CREATE ACTIVITY DATA
+                // -------------------------------------------------
+
                 getCellData(row, 0),   // Activity Type
+
                 getCellData(row, 1),   // Purpose
+
                 getCellData(row, 2),   // Description
+
                 getCellData(row, 3),   // Date
+
                 getCellData(row, 4),   // Start Time
+
                 getCellData(row, 5),   // End Time
+
                 getCellData(row, 6),   // Assignment Type
+
                 getCellData(row, 7),   // User
-                getCellData(row, 8)    // Reason
+
+                getCellData(row, 8),   // Reason
+
+
+                // -------------------------------------------------
+                // EDIT ACTIVITY DATA
+                // -------------------------------------------------
+
+                getCellData(row, 9),   // Edit Required
+
+                getCellData(row, 10),  // Edit Purpose
+
+                getCellData(row, 11)   // Edit Description
         );
     }
- // =========================================================
- // LINKED CRM ACTIVITY
- // =========================================================
 
- public static LinkedCRMActivity getLinkedCRMActivity(int row) {
 
-     return new LinkedCRMActivity(
+    // =========================================================
+    // LINKED CRM ACTIVITY
+    // DO NOT CHANGE
+    // =========================================================
 
-             getCellData(
-                     row,
-                     0,
-                     LINKED_ACTIVITY_SHEET), // Lead Name
+    public static LinkedCRMActivity getLinkedCRMActivity(int row) {
 
-             getCellData(
-                     row,
-                     1,
-                     LINKED_ACTIVITY_SHEET), // Activity Type
+        return new LinkedCRMActivity(
 
-             getCellData(
-                     row,
-                     2,
-                     LINKED_ACTIVITY_SHEET), // Purpose
+                getCellData(
+                        row,
+                        0,
+                        LINKED_ACTIVITY_SHEET), // Lead Name
 
-             getCellData(
-                     row,
-                     3,
-                     LINKED_ACTIVITY_SHEET), // Description
+                getCellData(
+                        row,
+                        1,
+                        LINKED_ACTIVITY_SHEET), // Activity Type
 
-             getCellData(
-                     row,
-                     4,
-                     LINKED_ACTIVITY_SHEET), // Link to Stage
+                getCellData(
+                        row,
+                        2,
+                        LINKED_ACTIVITY_SHEET), // Purpose
 
-             getCellData(
-                     row,
-                     5,
-                     LINKED_ACTIVITY_SHEET), // Date
+                getCellData(
+                        row,
+                        3,
+                        LINKED_ACTIVITY_SHEET), // Description
 
-             getCellData(
-                     row,
-                     6,
-                     LINKED_ACTIVITY_SHEET), // Start Time
+                getCellData(
+                        row,
+                        4,
+                        LINKED_ACTIVITY_SHEET), // Link to Stage
 
-             getCellData(
-                     row,
-                     7,
-                     LINKED_ACTIVITY_SHEET), // End Time
+                getCellData(
+                        row,
+                        5,
+                        LINKED_ACTIVITY_SHEET), // Date
 
-             getCellData(
-                     row,
-                     8,
-                     LINKED_ACTIVITY_SHEET), // Assignment Type
+                getCellData(
+                        row,
+                        6,
+                        LINKED_ACTIVITY_SHEET), // Start Time
 
-             getCellData(
-                     row,
-                     9,
-                     LINKED_ACTIVITY_SHEET), // User
+                getCellData(
+                        row,
+                        7,
+                        LINKED_ACTIVITY_SHEET), // End Time
 
-             getCellData(
-                     row,
-                     10,
-                     LINKED_ACTIVITY_SHEET)  // Reason
-     );
- }
+                getCellData(
+                        row,
+                        8,
+                        LINKED_ACTIVITY_SHEET), // Assignment Type
+
+                getCellData(
+                        row,
+                        9,
+                        LINKED_ACTIVITY_SHEET), // User
+
+                getCellData(
+                        row,
+                        10,
+                        LINKED_ACTIVITY_SHEET)  // Reason
+        );
+    }
 }

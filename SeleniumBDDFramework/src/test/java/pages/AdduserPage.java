@@ -86,31 +86,46 @@ public class AdduserPage {
     // ==============================
     // Enter User Details
     // ==============================
-
     public void enterUserDetails() {
 
-        String fname = "User" + new Random().nextInt(100);
-        String lname = "Test" + new Random().nextInt(10);
+        String[] firstNames = {
+            "John", "David", "Michael", "Robert", "James",
+            "Daniel", "William", "Thomas", "Joseph", "Andrew"
+        };
+
+        String[] lastNames = {
+            "Smith", "Johnson", "Williams", "Brown", "Wilson",
+            "Taylor", "Anderson", "Thomas", "Jackson", "White"
+        };
+
+        Random random = new Random();
+
+        String fname = firstNames[random.nextInt(firstNames.length)];
+        String lname = lastNames[random.nextInt(lastNames.length)];
 
         generatedName = fname + " " + lname;
 
         generatedEmail =
-                "user" + System.currentTimeMillis() + "@onelern.com";
+                fname.toLowerCase() +
+                "." +
+                lname.toLowerCase() +
+                System.currentTimeMillis() +
+                "@onelern.com";
 
         generatedEmployeeId =
                 String.valueOf(
-                        10000 + new Random().nextInt(90000)
+                        10000 + random.nextInt(90000)
                 );
 
         String pwd = "123456";
 
         System.out.println("======================================");
         System.out.println("Creating User");
-        System.out.println("First Name  = " + fname);
-        System.out.println("Last Name   = " + lname);
+        System.out.println("First Name   = " + fname);
+        System.out.println("Last Name    = " + lname);
         System.out.println("Display Name = " + generatedName);
-        System.out.println("Email       = " + generatedEmail);
-        System.out.println("Employee ID = " + generatedEmployeeId);
+        System.out.println("Email        = " + generatedEmail);
+        System.out.println("Employee ID  = " + generatedEmployeeId);
         System.out.println("======================================");
 
         enterFirstName(fname);
@@ -120,10 +135,7 @@ public class AdduserPage {
         enterEmployeeId(generatedEmployeeId);
         selectDepartment();
         enterPassword(pwd);
-
-        System.out.println("All user details entered successfully.");
     }
-
 
     // ==============================
     // First Name
