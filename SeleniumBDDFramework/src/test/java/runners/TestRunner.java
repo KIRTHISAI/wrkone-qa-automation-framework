@@ -7,24 +7,18 @@ import io.cucumber.junit.CucumberOptions;
 
 @RunWith(Cucumber.class)
 @CucumberOptions(
-
-        features = "src/test/resources/features/AUT-ACT-001_CRMActivityCreation.feature",
-
-        glue = {
-                "stepdefinitions"
-        },
-
-        plugin = {
-                "pretty",
-                "html:target/cucumber-report.html",
-                "json:target/cucumber-report.json"
-        },
-
-        monochrome = true,
-
-        publish = false,
-
-        snippets = CucumberOptions.SnippetType.CAMELCASE
+    features = "src/test/resources/features/AUT-ACT-001_CRMActivityCreation.feature",
+    glue = {
+        "stepdefinitions"
+    },
+    plugin = {
+        "pretty",
+        "html:target/cucumber-report.html",
+        "json:target/cucumber-report.json"
+    },
+    monochrome = true,
+    publish = false,
+    snippets = CucumberOptions.SnippetType.CAMELCASE
 )
 public class TestRunner {
 }
