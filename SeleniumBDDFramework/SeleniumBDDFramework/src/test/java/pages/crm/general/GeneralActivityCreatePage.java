@@ -1,5 +1,6 @@
 package pages.crm.general;
 
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.LocalTime;
@@ -7,6 +8,7 @@ import java.util.Locale;
 import java.util.List;
 
 import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
@@ -14,6 +16,7 @@ import org.openqa.selenium.WebElement;
 
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
+import org.openqa.selenium.support.ui.WebDriverWait;
 
 import model.CRMActivity;
 import pages.crm.ActivityCommonPage;
@@ -67,8 +70,8 @@ public class GeneralActivityCreatePage extends ActivityCommonPage {
                     + "or @role='combobox'][contains(@placeholder, 'End Time') "
                     + "or contains(normalize-space(.), 'Select End Time')]");
 
-    private final By createActivityButton =
-            By.xpath("//button[normalize-space()='Create Activity']");
+   // private final By createActivityButton =
+            //By.xpath("//button[normalize-space()='Create Activity']");
 
 
     // =========================================================
@@ -617,44 +620,84 @@ public class GeneralActivityCreatePage extends ActivityCommonPage {
             input.sendKeys(org.openqa.selenium.Keys.BACK_SPACE);
             input.sendKeys(user);
 
+            String normalizedUser = user.trim().toLowerCase(Locale.ROOT);
+            String upperCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            String lowerCase = "abcdefghijklmnopqrstuvwxyz";
             By exactUserOption = By.xpath(
-                    "//*[self::li or self::div or self::button or "
-                    + "@role='option' or self::span][normalize-space(.)='"
-                    + escapeXPath(user.trim()) + "']");
+                    "//*[self::li or self::div or self::span or self::p or self::button or @role='option']"
+                    + "[contains(translate(normalize-space(.), '" + upperCase + "', '"
+                    + lowerCase + "'), '" + escapeXPath(normalizedUser) + "')"
+                    + " or contains(translate(@title, '" + upperCase + "', '" + lowerCase
+                    + "'), '" + escapeXPath(normalizedUser) + "')"
+                    + " or contains(translate(@aria-label, '" + upperCase + "', '" + lowerCase
+                    + "'), '" + escapeXPath(normalizedUser) + "')]" );
 
-                        WebElement userOption = wait.until(driver -> {
-                                List<WebElement> matches = driver.findElements(exactUserOption);
+                        WebElement userOption = null;
+                        try {
+                                userOption = wait.until(driver -> {
+                                        List<WebElement> matches = driver.findElements(exactUserOption);
+                                        WebElement bestMatch = null;
 
-                                for (int index = matches.size() - 1; index >= 0; index--) {
-                                        try {
-                                                if (matches.get(index).isDisplayed()) {
-                                                        return matches.get(index);
+                                        for (int index = matches.size() - 1; index >= 0; index--) {
+                                                try {
+                                                        WebElement candidate = matches.get(index);
+                                                        if (!candidate.isDisplayed()) {
+                                                                continue;
+                                                        }
+
+                                                        String candidateText = normalizeText(candidate.getText());
+                                                        String candidateTitle = normalizeText(candidate.getAttribute("title"));
+                                                        String candidateLabel = normalizeText(candidate.getAttribute("aria-label"));
+                                                        if (normalizedUser.equals(candidateText)
+                                                                        || normalizedUser.equals(candidateTitle)
+                                                                        || normalizedUser.equals(candidateLabel)) {
+                                                                return candidate;
+                                                        }
+
+                                                        if (bestMatch == null && ((candidateText != null && candidateText.contains(normalizedUser))
+                                                                        || (candidateTitle != null && candidateTitle.contains(normalizedUser))
+                                                                        || (candidateLabel != null && candidateLabel.contains(normalizedUser)))) {
+                                                                bestMatch = candidate;
+                                                        }
+                                                } catch (org.openqa.selenium.StaleElementReferenceException e) {
+                                                        // Retry while the result list is being refreshed.
                                                 }
-                                        } catch (org.openqa.selenium.StaleElementReferenceException e) {
-                                                return null;
                                         }
+
+                                        return bestMatch;
+                                });
+                        } catch (TimeoutException e) {
+                                input.sendKeys(Keys.ARROW_DOWN);
+                                input.sendKeys(Keys.ENTER);
+                        }
+
+                        if (userOption != null) {
+                                scrollIntoView(userOption);
+                                try {
+                                        userOption.click();
+                                } catch (org.openqa.selenium.ElementClickInterceptedException e) {
+                                        ((org.openqa.selenium.JavascriptExecutor) driver)
+                                                        .executeScript("arguments[0].click();", userOption);
                                 }
-
-                                return null;
-                        });
-
-            scrollIntoView(userOption);
-            try {
-                userOption.click();
-            } catch (org.openqa.selenium.ElementClickInterceptedException e) {
-                ((org.openqa.selenium.JavascriptExecutor) driver)
-                        .executeScript("arguments[0].click();", userOption);
             }
 
-                        wait.until(driver -> driver.findElements(exactUserOption)
-                                        .stream()
-                                        .noneMatch(element -> {
-                                                try {
-                                                        return element.isDisplayed();
-                                                } catch (org.openqa.selenium.StaleElementReferenceException e) {
-                                                        return false;
-                                                }
-                                        }));
+                        wait.until(driver -> {
+                                try {
+                                        String value = input.getAttribute("value");
+                                        if (value != null && normalizeText(value).contains(normalizeText(user))) {
+                                                return true;
+                                        }
+
+                                        return driver.findElements(By.xpath(
+                                                        "//*[self::span or self::div or self::button]"
+                                                                        + "[contains(normalize-space(.), '"
+                                                                        + escapeXPath(user.trim()) + "')]"))
+                                                        .stream()
+                                                        .anyMatch(WebElement::isDisplayed);
+                                } catch (Exception e) {
+                                        return false;
+                                }
+                        });
 
             System.out.println(
                     "User selected successfully."
@@ -674,7 +717,14 @@ public class GeneralActivityCreatePage extends ActivityCommonPage {
     // REASON
     // =========================================================
 
-        protected void enterReason(String reason) {
+        private String normalizeText(String value) {
+                return value == null
+                                ? ""
+                                : value.trim().toLowerCase(Locale.ROOT);
+        }
+
+
+		protected void enterReason(String reason) {
 
         System.out.println(
                 "Entering Reason = " + reason
@@ -687,6 +737,7 @@ public class GeneralActivityCreatePage extends ActivityCommonPage {
                         + "'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
                         + "'abcdefghijklmnopqrstuvwxyz'),"
                         + "'reason')]"
+                        + " | //*[@id='assignment-reason' or @name='assignment-reason']"
                         + " | "
                         + "//input[contains("
                         + "translate(@placeholder,"
@@ -759,7 +810,7 @@ public class GeneralActivityCreatePage extends ActivityCommonPage {
     // CREATE BUTTON
     // =========================================================
 
-    public void clickCreateActivity() {
+  /*  public void clickCreateActivity() {
 
         System.out.println(
                 "Waiting for Create Activity button..."
@@ -798,8 +849,129 @@ public class GeneralActivityCreatePage extends ActivityCommonPage {
                 "Activity creation completed."
         );
     }
+*/
+ // =========================================================
+ // ASSIGNMENT TYPE - ASSIGN TO TEAMMATE
+ // =========================================================
+
+ private By assignToTeammateOption = By.xpath(
+     "//label[contains(normalize-space(.),'I want to assign this activity to my teammate')]"
+ );
+
+ // Users field
+ private By usersField = By.xpath(
+     "//div[@id='assignTo-teammate-section']//input"
+ );
+
+ // Reason for Assignment
+ private By assignmentReason = By.id("assignment-reason");
+
+ // Create Activity button
+ private By createActivityButton = By.id("btn-submit");
 
 
+ // =========================================================
+ // SELECT ASSIGN TO TEAMMATE
+ // =========================================================
+
+ public void selectAssignToTeammate() {
+
+     WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+
+     WebElement option = wait.until(
+         ExpectedConditions.elementToBeClickable(assignToTeammateOption)
+     );
+
+     ((JavascriptExecutor) driver).executeScript(
+         "arguments[0].click();", option
+     );
+
+     System.out.println("Assignment Type selected: Assign to teammate");
+ }
+
+
+ // =========================================================
+ // ENTER ASSIGNMENT REASON
+ // =========================================================
+
+ public void enterAssignmentReason(String reason) {
+
+	    WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(15));
+
+	    WebElement reasonField = wait.until(
+	        ExpectedConditions.visibilityOfElementLocated(
+	            By.id("assignment-reason")
+	        )
+	    );
+
+	    reasonField.click();
+	    reasonField.clear();
+	    reasonField.sendKeys(reason);
+
+	    System.out.println("Reason for Assignment entered: " + reason);
+	}
+ @Override
+ public void clickCreateActivity() {
+
+            WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+
+            WebElement createButton = wait.until(webDriver -> {
+                for (WebElement candidate : webDriver.findElements(By.id("btn-submit"))) {
+                    try {
+                        String disabled = candidate.getAttribute("disabled");
+                        String ariaDisabled = candidate.getAttribute("aria-disabled");
+                        if (candidate.isDisplayed() && candidate.isEnabled()
+                                && disabled == null && !"true".equalsIgnoreCase(ariaDisabled)) {
+                            return candidate;
+                        }
+                    } catch (org.openqa.selenium.StaleElementReferenceException ignored) {
+                        // Retry until the form finishes updating.
+                    }
+                }
+        return null;
+            });
+
+	    ((JavascriptExecutor) driver).executeScript(
+	        "arguments[0].scrollIntoView({block:'center'});",
+	        createButton
+	    );
+
+            try {
+                createButton.click();
+            } catch (org.openqa.selenium.ElementClickInterceptedException e) {
+                ((JavascriptExecutor) driver).executeScript("arguments[0].click();", createButton);
+            }
+
+	    System.out.println("Create Activity button clicked");
+
+            wait.until(webDriver -> {
+                String currentUrl = webDriver.getCurrentUrl();
+                return currentUrl.contains("/qa-crm/activities")
+                        && !currentUrl.contains("/qa-crm/activities/create");
+            });
+	}
+
+ // =========================================================
+ // VERIFY TEAMMATE SECTION
+ // =========================================================
+
+ public boolean isTeammateSectionDisplayed() {
+
+     WebDriverWait wait = new WebDriverWait(driver, Duration.ofSeconds(10));
+
+     try {
+         wait.until(
+             ExpectedConditions.visibilityOfElementLocated(
+                 By.id("assignTo-teammate-section")
+             )
+         );
+
+         return true;
+
+     } catch (TimeoutException e) {
+         return false;
+     }
+ }
     // =========================================================
     // VERIFY CREATION
     // =========================================================

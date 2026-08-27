@@ -4,6 +4,7 @@ import base.baseClass;
 import io.cucumber.java.en.When;
 import io.cucumber.java.en.Then;
 import model.CRMActivity;
+import pages.crm.ActivityListPage;
 import pages.crm.general.GeneralActivityCreatePage;
 import Utilities.ExcelUtils;
 
@@ -89,6 +90,10 @@ public class GeneralActivityStep extends baseClass {
 
         getGeneralActivityPage()
                 .createGeneralActivity(activity);
+
+        ActivityListPage activityListPage = new ActivityListPage(driver);
+        ActivityScenarioContext.setActivityId(
+                activityListPage.captureNewestActivityId());
 
         System.out.println(
                 "General Activity creation flow completed."

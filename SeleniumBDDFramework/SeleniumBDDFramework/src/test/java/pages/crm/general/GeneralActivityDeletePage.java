@@ -13,19 +13,8 @@ public class GeneralActivityDeletePage extends ActivityCommonPage {
         super(driver);
     }
 
-    private By deleteButton =
-            By.xpath("//button[normalize-space()='Delete']");
-
-    private By confirmDelete =
-            By.xpath("//button[normalize-space()='Confirm']");
-
-    public void clickDelete() {
-
-        wait.until(
-                ExpectedConditions
-                        .elementToBeClickable(deleteButton))
-                .click();
-    }
+        private final By confirmDelete =
+            By.id("activities-page-delete-modal-confirm");
 
     public void confirmDelete() {
 

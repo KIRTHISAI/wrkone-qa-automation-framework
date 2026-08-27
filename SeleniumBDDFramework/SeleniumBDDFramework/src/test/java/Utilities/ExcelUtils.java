@@ -231,6 +231,24 @@ public class ExcelUtils {
                         row,
                         10);
 
+        String editRequired =
+                getCellData(
+                        GENERAL_ACTIVITY_SHEET,
+                        row,
+                        11);
+
+        String editPurpose =
+                getCellData(
+                        GENERAL_ACTIVITY_SHEET,
+                        row,
+                        12);
+
+        String editDescription =
+                getCellData(
+                        GENERAL_ACTIVITY_SHEET,
+                        row,
+                        13);
+
         // =====================================================
         // DEBUG OUTPUT
         // =====================================================
@@ -272,7 +290,7 @@ public class ExcelUtils {
         // CREATE CRM ACTIVITY OBJECT
         // =====================================================
 
-        return new CRMActivity(
+        CRMActivity activity = new CRMActivity(
                 loginEmail,
                 loginPassword,
                 activityType,
@@ -285,6 +303,12 @@ public class ExcelUtils {
                 user,
                 reason
         );
+
+        activity.setEditRequired(editRequired);
+        activity.setEditPurpose(editPurpose);
+        activity.setEditDescription(editDescription);
+
+        return activity;
     }
 
     // =========================================================

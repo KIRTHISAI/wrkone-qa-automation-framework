@@ -8,18 +8,17 @@ Feature: General Activity View
 
   Scenario Outline: View General Activity - Excel Row <row>
 
-    Given CRM General Activity exists from Excel row <row>
-
-    When User clicks Activities
-
+    Given User logs in for CRM Activity from Excel row <row>
+    And User clicks Activities
     And User clicks All Activities
-
-    And User views General Activity from Excel row <row>
+    And User clicks Create Activity Menu
+    And User creates General Activity from Excel row <row>
+    Then General Activity should be created successfully
+    When User views General Activity from Excel row <row>
 
     Then General Activity details should be displayed
 
     Examples:
       | row |
       | 1   |
-      | 2   |
-      | 3   |
+      

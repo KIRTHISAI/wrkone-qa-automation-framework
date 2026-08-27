@@ -2,6 +2,7 @@ package pages.crm.general;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import pages.crm.ActivityCommonPage;
@@ -17,17 +18,14 @@ public class GeneralActivityEditPage extends ActivityCommonPage {
     // EDIT LOCATORS
     // =========================================================
 
-    private By editButton =
-            By.xpath("//button[normalize-space()='Edit']");
-
     private By purpose =
-            By.id("purpose");
+            By.id("activity-purpose-input");
 
     private By description =
-            By.id("description");
+            By.id("activity-description-textarea");
 
     private By saveButton =
-            By.xpath("//button[normalize-space()='Save']");
+            By.id("btn-submit");
 
     // =========================================================
     // SEARCH
@@ -37,45 +35,30 @@ public class GeneralActivityEditPage extends ActivityCommonPage {
     // EDIT
     // =========================================================
 
-    public void clickEdit() {
-
-        wait.until(
-                ExpectedConditions
-                        .elementToBeClickable(editButton))
-                .click();
-    }
-
     public void updatePurpose(String value) {
 
-        wait.until(
-                ExpectedConditions
-                        .visibilityOfElementLocated(purpose))
-                .clear();
-
-        wait.until(
-                ExpectedConditions
-                        .visibilityOfElementLocated(purpose))
-                .sendKeys(value);
+        replaceText(purpose, value);
     }
 
     public void updateDescription(String value) {
 
-        wait.until(
-                ExpectedConditions
-                        .visibilityOfElementLocated(description))
-                .clear();
-
-        wait.until(
-                ExpectedConditions
-                        .visibilityOfElementLocated(description))
-                .sendKeys(value);
+        replaceText(description, value);
     }
 
     public void saveChanges() {
 
-        wait.until(
+        WebElement save = wait.until(
                 ExpectedConditions
-                        .elementToBeClickable(saveButton))
-                .click();
+                        .elementToBeClickable(saveButton));
+        scrollIntoView(save);
+        save.click();
+    }
+
+    private void replaceText(By locator, String value) {
+        WebElement field = wait.until(
+                ExpectedConditions.visibilityOfElementLocated(locator));
+        scrollIntoView(field);
+        field.clear();
+        field.sendKeys(value);
     }
 }

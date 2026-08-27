@@ -2,8 +2,6 @@ package pages.crm.general;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.ui.ExpectedConditions;
 
 import pages.crm.ActivityCommonPage;
 
@@ -18,37 +16,11 @@ public class GeneralActivityViewPage extends ActivityCommonPage {
     // VIEW LOCATORS
     // =========================================================
 
-    /*
-     * Adjust this locator if your application uses a different
-     * View button/icon.
-     */
-    private By viewButton =
-            By.xpath("//button[normalize-space()='View']");
-
-    // =========================================================
-    // DETAIL LOCATORS
-    // =========================================================
-
     private By purpose =
-            By.id("purpose");
+            By.xpath("//*[normalize-space()='Purpose']/following::*[normalize-space()][1]");
 
     private By description =
-            By.id("description");
-
-    // =========================================================
-    // CLICK VIEW
-    // =========================================================
-
-    public void clickView() {
-
-        wait.until(
-                ExpectedConditions
-                        .elementToBeClickable(viewButton))
-                .click();
-
-        System.out.println(
-                "View button clicked successfully.");
-    }
+            By.xpath("//*[normalize-space()='Description']/following::*[normalize-space()][1]");
 
     // =========================================================
     // VERIFY ACTIVITY DETAILS
@@ -58,23 +30,21 @@ public class GeneralActivityViewPage extends ActivityCommonPage {
             String expectedPurpose,
             String expectedDescription) {
 
-        WebElement purposeField =
-                wait.until(
-                        ExpectedConditions
-                                .visibilityOfElementLocated(
-                                        purpose));
+        String[] actualDetails = wait.until(webDriver -> {
+            try {
+                String actualPurpose = webDriver.findElement(purpose).getText().trim();
+                String actualDescription = webDriver.findElement(description).getText().trim();
 
-        WebElement descriptionField =
-                wait.until(
-                        ExpectedConditions
-                                .visibilityOfElementLocated(
-                                        description));
+                return actualPurpose.isEmpty() || actualDescription.isEmpty()
+                        ? null
+                        : new String[] {actualPurpose, actualDescription};
+            } catch (org.openqa.selenium.StaleElementReferenceException exception) {
+                return null;
+            }
+        });
 
-        String actualPurpose =
-                purposeField.getAttribute("value");
-
-        String actualDescription =
-                descriptionField.getAttribute("value");
+        String actualPurpose = actualDetails[0];
+        String actualDescription = actualDetails[1];
 
         System.out.println(
                 "Expected Purpose      = "

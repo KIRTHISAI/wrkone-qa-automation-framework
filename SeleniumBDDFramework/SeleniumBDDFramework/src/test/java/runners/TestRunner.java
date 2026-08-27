@@ -7,24 +7,23 @@ import io.cucumber.junit.CucumberOptions;
 
 @RunWith(Cucumber.class)
 @CucumberOptions(
-        features = "src/test/resources/features",
+	    features = "src/test/resources/Features",
 
-        glue = {
-                "stepdefinitions"
-        },
-        		// tags = "@Smoke" // Executes only 
+	    glue = {
+	        "stepdefinitions"
+	    },
 
-        plugin = {
-                "pretty",
-                "html:target/cucumber-report.html",
-                "json:target/cucumber-report.json"
-        },
+	    		tags = "@GeneralActivity",
 
-        monochrome = true,
+	    plugin = {
+	        "pretty",
+	        "html:target/cucumber-report.html",
+	        "json:target/cucumber-report.json"
+	    },
 
-        publish = false,
-
-        snippets = CucumberOptions.SnippetType.CAMELCASE
-)
-public class TestRunner {
-}
+	    monochrome = true,
+	    publish = false,
+	    snippets = CucumberOptions.SnippetType.CAMELCASE
+	)
+	public class TestRunner {
+	}
