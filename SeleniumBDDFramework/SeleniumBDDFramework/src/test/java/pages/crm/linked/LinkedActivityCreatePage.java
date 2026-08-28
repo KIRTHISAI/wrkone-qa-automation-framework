@@ -69,6 +69,10 @@ public class LinkedActivityCreatePage extends GeneralActivityCreatePage {
     private final By leadList =
             By.id("lead-list");
 
+    private final By leadSearchInput =
+            By.cssSelector("#lead-modal input[placeholder*='Search'], "
+                    + "input[placeholder*='Search name or ID']");
+
     // =========================================================
     // LINK TO STAGE
     // =========================================================
@@ -82,12 +86,38 @@ public class LinkedActivityCreatePage extends GeneralActivityCreatePage {
     // =========================================================
 
     private final By linkToStage =
-            By.cssSelector(
-                    "#activity-stage-link-container select"
-            );
+            By.xpath("//label[normalize-space()='Link To Stage' or normalize-space()='Link to Stage' or normalize-space()='Link To Stage *' or normalize-space()='Link to Stage *']/following::select[1] | //select[contains(@id,'stage') or contains(@name,'stage')][1]");
+
+    private final By linkedActivityType =
+            By.xpath("//label[normalize-space()='Activity Type' or normalize-space()='Virtual Visit' or normalize-space()='Activity Type *']/following::select[1] | //select[@id='activity-type-select' or @name='activityType' or contains(@id,'type')][1]");
 
     private final By linkedPurpose =
-            By.xpath("//*[normalize-space()='Purpose']/following::select[1]");
+            By.cssSelector("select#activity-purpose-select, select[name='purpose'], select[id*='purpose']");
+
+    private final By linkedDescription =
+            By.xpath("//textarea[@placeholder='Enter activity description...' or @id='activity-description-textarea' or contains(@placeholder,'description')] | //textarea[1]");
+
+    @Override
+    protected void selectActivityType(String type) {
+        String value = required(type, "Activity Type");
+
+        WebElement activityTypeSelect = wait.until(
+                ExpectedConditions.elementToBeClickable(linkedActivityType));
+
+        scrollIntoView1(activityTypeSelect);
+        new Select(activityTypeSelect).selectByVisibleText(value);
+
+        wait.until(webDriver -> {
+            try {
+                WebElement purposeSelect = webDriver.findElement(linkedPurpose);
+                return purposeSelect.isDisplayed() && purposeSelect.isEnabled();
+            } catch (Exception e) {
+                return false;
+            }
+        });
+
+        System.out.println("Linked activity type selected: " + value);
+    }
 
     // =========================================================
     // CREATE LINKED ACTIVITY
@@ -119,12 +149,12 @@ public class LinkedActivityCreatePage extends GeneralActivityCreatePage {
         System.out.println("Linked Activity radio selected.");
         selectLead(activity.getLeadName());
         System.out.println("Lead selected from Excel.");
+        selectActivityType(activity.getActivityType());
+        System.out.println("Activity Type selected; purpose should now be enabled.");
+        selectLinkedPurpose(activity.getPurpose());
+        enterLinkedDescription(activity.getDescription());
         selectLinkToStage(activity.getLinkToStage());
         System.out.println("Link To Stage selected from Excel.");
-        selectActivityType(activity.getActivityType());
-        System.out.println("Activity Type reused from General Activity flow.");
-        selectLinkedPurpose(activity.getPurpose());
-        enterDescription(activity.getDescription());
         enterDate(activity.getDate());
         selectStartTime(activity.getStartTime());
         selectEndTime(activity.getEndTime());
@@ -145,11 +175,46 @@ public class LinkedActivityCreatePage extends GeneralActivityCreatePage {
 
                 String value = required(purpose, "Purpose");
 
-                WebElement purposeSelect = wait.until(
-                                ExpectedConditions.visibilityOfElementLocated(linkedPurpose));
+                wait.until(webDriver -> {
+                        WebElement purposeSelect = webDriver.findElement(linkedPurpose);
+                        if (!purposeSelect.isDisplayed() || !purposeSelect.isEnabled()) {
+                                return false;
+                        }
 
+                        return new Select(purposeSelect).getOptions().stream()
+                                        .anyMatch(option -> value.equalsIgnoreCase(option.getText().trim()));
+                });
+
+                WebElement purposeSelect = wait.until(
+                                ExpectedConditions.elementToBeClickable(linkedPurpose));
                 scrollIntoView(purposeSelect);
-                new Select(purposeSelect).selectByVisibleText(value);
+                Select select = new Select(purposeSelect);
+                WebElement matchingOption = select.getOptions().stream()
+                                .filter(option -> value.equalsIgnoreCase(option.getText().trim()))
+                                .findFirst()
+                                .orElseThrow(() -> new IllegalStateException(
+                                                "Linked Purpose option was not available: " + value));
+                select.selectByValue(matchingOption.getAttribute("value"));
+
+                if (!value.equalsIgnoreCase(new Select(purposeSelect)
+                                .getFirstSelectedOption().getText().trim())) {
+                        throw new IllegalStateException("Linked Purpose was not selected: " + value);
+                }
+        }
+
+        private void enterLinkedDescription(String description) {
+                String value = required(description, "Description");
+                wait.until(webDriver -> {
+                        try {
+                                WebElement element = webDriver.findElement(linkedDescription);
+                                scrollIntoView(element);
+                                element.clear();
+                                element.sendKeys(value);
+                                return value.equals(element.getAttribute("value"));
+                        } catch (StaleElementReferenceException exception) {
+                                return false;
+                        }
+                });
         }
 
         // =========================================================
@@ -201,14 +266,6 @@ public class LinkedActivityCreatePage extends GeneralActivityCreatePage {
         System.out.println(
                 "Linked Activity selected successfully.");
     }
-
-    // =========================================================
-    // SELECT LEAD
-    // =========================================================
- // =========================================================
- // SELECT LEAD - ROBUST VERSION
- // =========================================================
-
  public void selectLead(String leadName) {
 
  String requiredLead = required(leadName, "Lead Name");
@@ -276,8 +333,15 @@ public class LinkedActivityCreatePage extends GeneralActivityCreatePage {
 
      System.out.println("Lead selection modal opened.");
 
+     WebElement search = wait.until(
+             ExpectedConditions.elementToBeClickable(leadSearchInput));
+     search.clear();
+     search.sendKeys(requiredLead);
+
+     System.out.println("Lead search entered: " + requiredLead);
+
      // ---------------------------------------------------------
-     // 3. Wait for lead list to become visible
+     // 3. Wait for the filtered lead list to become visible
      // ---------------------------------------------------------
 
          wait.until(driver -> {
@@ -299,69 +363,48 @@ public class LinkedActivityCreatePage extends GeneralActivityCreatePage {
      System.out.println("Lead list displayed.");
 
      // ---------------------------------------------------------
-     // 4. Normalize required lead name
+         // 4. Select the matching lead from the visible list
      // ---------------------------------------------------------
-
-     // ---------------------------------------------------------
-     // 5. FIRST ATTEMPT
-     // Find exact visible text anywhere in the modal
-     // ---------------------------------------------------------
-
-     List<WebElement> candidates = new ArrayList<>();
 
      try {
+                 WebElement leadElement = wait.until(webDriver -> {
+                         List<WebElement> leadItems = webDriver.findElements(
+                                         By.cssSelector("#lead-list *"));
 
-         String xpath =
-                 "//*[contains(translate(normalize-space(.),"
-                         + " 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',"
-                         + " 'abcdefghijklmnopqrstuvwxyz'),"
-                         + " '" + escapeXPath(normalizedLead) + "')]";
+                         for (WebElement leadItem : leadItems) {
+                                 try {
+                                         if (!leadItem.isDisplayed()
+                                                         || !normalizeText(leadItem.getText()).contains(normalizedLead)) {
+                                                 continue;
+                                         }
 
-         candidates = driver.findElements(By.xpath(xpath));
+                                         return (WebElement) ((JavascriptExecutor) webDriver).executeScript(
+                                                         "let element = arguments[0];"
+                                                         + "while (element) {"
+                                                         + "  if (element.tagName === 'BUTTON' || element.getAttribute('role') === 'button'"
+                                                         + "      || element.getAttribute('role') === 'option' || element.tagName === 'LI') return element;"
+                                                         + "  element = element.parentElement;"
+                                                         + "}"
+                                                         + "return arguments[0];", leadItem);
+                                 } catch (StaleElementReferenceException exception) {
+                                         // The list is still rendering; retry the lookup.
+                                 }
+                         }
 
-     } catch (Exception e) {
+                         return null;
+                 });
 
-         System.out.println(
-                 "Primary lead search failed: " + e.getMessage()
-         );
-     }
+                 scrollIntoView1(leadElement);
+                 jsClick(leadElement);
 
-     // ---------------------------------------------------------
-     // 6. Find the best matching candidate
-     // ---------------------------------------------------------
-
-     WebElement leadElement = null;
-
-     for (WebElement element : candidates) {
-
-         try {
-
-             if (!element.isDisplayed()) {
-                 continue;
-             }
-
-             String text = normalizeText(element.getText());
-
-             if (text.contains(normalizedLead)) {
-
-                 leadElement = element;
-
-                 System.out.println(
-                         "Lead candidate found = " + element.getText()
-                 );
-
-                 break;
-             }
-
-         } catch (StaleElementReferenceException e) {
-             // DOM refreshed - ignore and continue
+                 wait.until(ExpectedConditions.invisibilityOfElementLocated(leadList));
+                 System.out.println("Lead selected successfully.");
+                 return;
+         } catch (TimeoutException exception) {
+                 failLeadSelection(requiredLead, exception);
          }
-     }
 
-     // ---------------------------------------------------------
-     // 7. SECOND ATTEMPT
-     // Search common clickable elements
-     // ---------------------------------------------------------
+                 WebElement leadElement = null;
 
      if (leadElement == null) {
 
@@ -626,6 +669,13 @@ public class LinkedActivityCreatePage extends GeneralActivityCreatePage {
 
      System.out.println();
  }
+
+ private void failLeadSelection(String leadName, TimeoutException cause) {
+     throw new TimeoutException(
+             "No selectable lead matched '" + leadName
+                     + "' after searching the Select Lead modal.",
+             cause);
+ }
 //=========================================================
 //NORMALIZE TEXT
 //=========================================================
@@ -789,77 +839,35 @@ private void printVisibleLeadModalText11() {
 
     public void selectLinkToStage(String stage) {
 
-        if (stage == null ||
-                stage.trim().isEmpty()) {
-
+        if (stage == null || stage.trim().isEmpty()) {
             throw new IllegalArgumentException(
                     "Link To Stage cannot be empty");
         }
 
-        String value =
-                stage.trim();
+        String value = stage.trim();
 
         System.out.println();
-        System.out.println(
-                "Selecting Link To Stage = " + value);
+        System.out.println("Selecting Link To Stage = " + value);
 
-        // =====================================================
-        // WAIT FOR NATIVE SELECT
-        // =====================================================
-
-        WebElement selectElement =
-                wait.until(
-                        ExpectedConditions.visibilityOfElementLocated(
-                                linkToStage
-                        )
-                );
+        WebElement selectElement = wait.until(
+                ExpectedConditions.elementToBeClickable(linkToStage));
 
         scrollIntoView1(selectElement);
-
-        wait.until(
-                ExpectedConditions.elementToBeClickable(
-                        selectElement
-                )
-        );
-
-        // =====================================================
-        // SELECT BY VISIBLE TEXT
-        // =====================================================
-
-        Select select =
-                new Select(selectElement);
-
-        select.selectByVisibleText(value);
-
-        // =====================================================
-        // VERIFY SELECTION
-        // =====================================================
+        new Select(selectElement).selectByVisibleText(value);
 
         wait.until(driver -> {
-
             try {
-
-                String selected =
-                        new Select(
-                                driver.findElement(
-                                        linkToStage
-                                )
-                        )
+                String selected = new Select(driver.findElement(linkToStage))
                         .getFirstSelectedOption()
                         .getText()
                         .trim();
-
                 return selected.equalsIgnoreCase(value);
-
             } catch (Exception e) {
-
                 return false;
             }
         });
 
-        System.out.println(
-                "Link To Stage selected = " +
-                value);
+        System.out.println("Link To Stage selected = " + value);
     }
 
     // =========================================================

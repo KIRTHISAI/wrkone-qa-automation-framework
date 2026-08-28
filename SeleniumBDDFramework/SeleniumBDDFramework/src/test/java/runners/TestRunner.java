@@ -7,23 +7,23 @@ import io.cucumber.junit.CucumberOptions;
 
 @RunWith(Cucumber.class)
 @CucumberOptions(
-	    features = "src/test/resources/Features",
+    features = "src/test/resources/Features",
 
-	    glue = {
-	        "stepdefinitions"
-	    },
+    glue = {
+        "stepdefinitions"
+    },
 
-	    		tags = "@GeneralActivity",
+    //tags = "@LinkedActivity or @Calendar",
 
-	    plugin = {
-	        "pretty",
-	        "html:target/cucumber-report.html",
-	        "json:target/cucumber-report.json"
-	    },
+    plugin = {
+        "pretty",
+        "html:target/cucumber-report.html",
+        "json:target/cucumber-report.json"
+    },
 
-	    monochrome = true,
-	    publish = false,
-	    snippets = CucumberOptions.SnippetType.CAMELCASE
-	)
-	public class TestRunner {
-	}
+    monochrome = true,
+    publish = false,
+    snippets = CucumberOptions.SnippetType.CAMELCASE
+)
+public class TestRunner {
+}

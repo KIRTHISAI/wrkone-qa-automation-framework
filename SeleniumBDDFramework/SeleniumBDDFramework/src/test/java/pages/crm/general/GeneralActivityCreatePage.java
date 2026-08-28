@@ -2,10 +2,10 @@ package pages.crm.general;
 
 import java.time.Duration;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.time.LocalTime;
-import java.util.Locale;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.JavascriptExecutor;
@@ -13,7 +13,6 @@ import org.openqa.selenium.Keys;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.Select;
 import org.openqa.selenium.support.ui.WebDriverWait;
@@ -605,20 +604,23 @@ public class GeneralActivityCreatePage extends ActivityCommonPage {
 
         try {
 
-            WebElement input =
-                    wait.until(
-                            ExpectedConditions
-                                    .visibilityOfElementLocated(
-                                            userInput
-                                    )
-                    );
+            WebElement input = wait.until(
+                    ExpectedConditions.elementToBeClickable(userInput));
 
             scrollIntoView(input);
             input.click();
-
             input.sendKeys(org.openqa.selenium.Keys.CONTROL, "a");
             input.sendKeys(org.openqa.selenium.Keys.BACK_SPACE);
-            input.sendKeys(user);
+
+                        String searchText = user.trim();
+                        input.sendKeys(searchText);
+
+                        wait.until(webDriver -> {
+                                WebElement currentInput = webDriver.findElement(userInput);
+                                String currentValue = currentInput.getAttribute("value");
+                                return currentValue != null
+                                                && normalizeText(currentValue).equals(normalizeText(searchText));
+                        });
 
             String normalizedUser = user.trim().toLowerCase(Locale.ROOT);
             String upperCase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -667,8 +669,10 @@ public class GeneralActivityCreatePage extends ActivityCommonPage {
                                         return bestMatch;
                                 });
                         } catch (TimeoutException e) {
-                                input.sendKeys(Keys.ARROW_DOWN);
-                                input.sendKeys(Keys.ENTER);
+                                WebElement currentInput = wait.until(
+                                                ExpectedConditions.elementToBeClickable(userInput));
+                                currentInput.sendKeys(Keys.ARROW_DOWN);
+                                currentInput.sendKeys(Keys.ENTER);
                         }
 
                         if (userOption != null) {
@@ -683,7 +687,8 @@ public class GeneralActivityCreatePage extends ActivityCommonPage {
 
                         wait.until(driver -> {
                                 try {
-                                        String value = input.getAttribute("value");
+                                        String value = driver.findElement(userInput)
+                                                        .getAttribute("value");
                                         if (value != null && normalizeText(value).contains(normalizeText(user))) {
                                                 return true;
                                         }

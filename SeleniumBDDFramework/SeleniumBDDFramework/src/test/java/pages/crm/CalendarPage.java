@@ -61,11 +61,16 @@ public class CalendarPage {
 
         public void editActivity(String currentPurpose, String activityDate,
                      String updatedPurpose, String updatedDescription) {
-        By activity = By.xpath(
-                "//*[normalize-space()=" + toXPathLiteral(currentPurpose) + "]");
+            editActivity(currentPurpose, null, activityDate, updatedPurpose, updatedDescription);
+            }
+
+            public void editActivity(String currentPurpose, String currentDescription,
+                     String activityDate, String updatedPurpose, String updatedDescription) {
+            By activity = activityLocator(currentPurpose, currentDescription);
 
         open();
         navigateToActivityMonth(activityDate);
+            scrollCalendarToActivityDate();
 
         WebElement activityElement = wait.until(
             ExpectedConditions.elementToBeClickable(activity));
@@ -78,6 +83,50 @@ public class CalendarPage {
         replaceText(purposeInput, updatedPurpose);
         replaceText(descriptionInput, updatedDescription);
         click(updateActivityButton);
+    }
+
+    public void editLinkedActivity(String currentPurpose, String activityDate,
+                     String updatedDescription) {
+        editLinkedActivity(currentPurpose, null, activityDate, updatedDescription);
+        }
+
+        public void editLinkedActivity(String currentPurpose, String currentDescription,
+                 String activityDate, String updatedDescription) {
+        By activity = activityLocator(currentPurpose, currentDescription);
+
+        open();
+        navigateToActivityMonth(activityDate);
+        scrollCalendarToActivityDate();
+
+        WebElement activityElement = wait.until(
+            ExpectedConditions.elementToBeClickable(activity));
+        ((org.openqa.selenium.JavascriptExecutor) driver).executeScript(
+            "arguments[0].scrollIntoView({block:'center'});", activityElement);
+        click(activity);
+        click(editActivityButton);
+        wait.until(ExpectedConditions.urlContains("/qa-crm/activities/create"));
+
+        replaceText(descriptionInput, updatedDescription);
+        click(updateActivityButton);
+    }
+
+    private By activityLocator(String purpose, String description) {
+        String purposeLiteral = toXPathLiteral(purpose);
+        if (description == null || description.isBlank()) {
+            return By.xpath("//*[normalize-space()=" + purposeLiteral + "]");
+        }
+
+        return By.xpath("//*[normalize-space()=" + purposeLiteral + "]"
+                + " | *[normalize-space()=" + toXPathLiteral(description) + "]");
+    }
+
+    private void scrollCalendarToActivityDate() {
+        ((org.openqa.selenium.JavascriptExecutor) driver).executeScript(
+                "document.querySelectorAll('*').forEach(function(element) {"
+                + " if (element.scrollHeight > element.clientHeight) {"
+                + "   element.scrollTop = element.scrollHeight;"
+                + " }"
+                + "});");
     }
 
     public void verifyActivityUpdatedSuccessfully() {

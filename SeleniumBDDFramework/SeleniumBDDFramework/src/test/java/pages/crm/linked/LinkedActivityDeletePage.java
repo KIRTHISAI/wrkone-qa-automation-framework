@@ -1,5 +1,13 @@
 package pages.crm.linked;
 
-public class LinkedActivityDeletePage {
+import org.openqa.selenium.WebDriver;
 
+import pages.crm.general.GeneralActivityDeletePage;
+
+public class LinkedActivityDeletePage extends GeneralActivityDeletePage {
+
+    public LinkedActivityDeletePage(WebDriver driver) {
+        super(driver);
+    }
 }
+

@@ -9,13 +9,18 @@ import io.cucumber.java.en.When;
 import base.baseClass;
 import model.LinkedCRMActivity;
 import pages.LoginPage;
+import pages.crm.ActivityListPage;
 import pages.crm.linked.LinkedActivityCreatePage;
+import pages.crm.linked.LinkedActivityDeletePage;
+import pages.crm.linked.LinkedActivityEditPage;
+import pages.crm.linked.LinkedActivityViewPage;
 import Utilities.ExcelUtils;
 
 public class LinkedActivityStep extends baseClass {
 
     private LinkedCRMActivity activity;
     private LinkedActivityCreatePage linkedActivityCreatePage;
+    private ActivityListPage activityListPage;
 
     // =========================================================
     // LOGIN
@@ -261,10 +266,73 @@ public class LinkedActivityStep extends baseClass {
 
         linkedActivityCreatePage.createLinkedActivity(activity);
 
+        if (!isDashboardVisibleAssignment(activity.getAssignmentType())) {
+            System.out.println("Assignment type is not dashboard-visible; skip dashboard ID capture.");
+        } else {
+            ActivityListPage activityListPage = new ActivityListPage(driver);
+            ActivityScenarioContext.setActivityId(
+                    activityListPage.captureNewestActivityId());
+        }
+
         System.out.println();
         System.out.println("==========================================");
         System.out.println("LINKED ACTIVITY CREATED SUCCESSFULLY");
         System.out.println("==========================================");
+    }
+
+        @When("User creates Linked CRM Activity from Calendar Excel row {int}")
+        public void userCreatesLinkedCRMActivityFromCalendarExcelRow(int rowNumber) {
+                userCreatesLinkedCRMActivityFromExcelRow(rowNumber);
+        }
+
+    @When("User views Linked Activity from Excel row {int}")
+    public void userViewsLinkedActivityFromExcelRow(int row) {
+        activity = ExcelUtils.getLinkedCRMActivity(row);
+        getActivityListPage().selectActivityAction(
+                ActivityScenarioContext.getActivityId(), "View");
+    }
+
+    @Then("Linked Activity details should be displayed")
+    public void linkedActivityDetailsShouldBeDisplayed() {
+        new LinkedActivityViewPage(driver)
+                .verifyActivityDetails(activity.getPurpose(), activity.getDescription());
+    }
+
+    @When("User edits Linked Activity from Excel row {int}")
+    public void userEditsLinkedActivityFromExcelRow(int row) {
+        activity = ExcelUtils.getLinkedCRMActivity(row);
+
+        if (activity.getEditDescription() == null || activity.getEditDescription().isBlank()) {
+            throw new IllegalArgumentException(
+                    "Edit Description is required for Linked Activity row " + row);
+        }
+
+        getActivityListPage().selectActivityAction(
+                ActivityScenarioContext.getActivityId(), "Edit");
+
+        LinkedActivityEditPage editPage = new LinkedActivityEditPage(driver);
+        editPage.updateDescription(activity.getEditDescription());
+        editPage.saveChanges();
+    }
+
+    @Then("Linked Activity should be updated successfully")
+    public void linkedActivityShouldBeUpdatedSuccessfully() {
+        getActivityListPage().waitForActivityMessage("Activity updated successfully");
+    }
+
+    @When("User deletes Linked Activity from Excel row {int}")
+    public void userDeletesLinkedActivityFromExcelRow(int row) {
+        activity = ExcelUtils.getLinkedCRMActivity(row);
+        getActivityListPage().selectActivityAction(
+                ActivityScenarioContext.getActivityId(), "Delete");
+
+        LinkedActivityDeletePage deletePage = new LinkedActivityDeletePage(driver);
+        deletePage.confirmDelete();
+    }
+
+    @Then("Linked Activity should be deleted successfully")
+    public void linkedActivityShouldBeDeletedSuccessfully() {
+        getActivityListPage().waitForActivityMessage("Activity deleted successfully");
     }
 
     // =========================================================
@@ -300,6 +368,13 @@ public class LinkedActivityStep extends baseClass {
                 "Lead Name is empty after creation.",
                 activity.getLeadName().trim().isEmpty());
 
+        if (!isDashboardVisibleAssignment(activity.getAssignmentType())) {
+            getActivityListPage().waitForActivityMessage("Activity created successfully");
+            System.out.println(
+                    "Linked CRM Activity created successfully for non-dashboard assignment type.");
+            return;
+        }
+
         if (!currentUrl.contains("/qa-crm/activities")) {
 
             throw new AssertionError(
@@ -315,6 +390,28 @@ public class LinkedActivityStep extends baseClass {
     // =========================================================
     // CLEAN STRING
     // =========================================================
+
+    private ActivityListPage getActivityListPage() {
+        if (driver == null) {
+            throw new IllegalStateException("WebDriver is not initialized.");
+        }
+
+        if (activityListPage == null) {
+            activityListPage = new ActivityListPage(driver);
+        }
+
+        return activityListPage;
+    }
+
+    private boolean isDashboardVisibleAssignment(String assignmentType) {
+        if (assignmentType == null) {
+            return true;
+        }
+
+        String value = assignmentType.trim();
+        return !(value.equalsIgnoreCase("I want to assign this activity to my teammate")
+                || value.equalsIgnoreCase("I want to tag users for collaboration"));
+    }
 
     private String clean(String value) {
 

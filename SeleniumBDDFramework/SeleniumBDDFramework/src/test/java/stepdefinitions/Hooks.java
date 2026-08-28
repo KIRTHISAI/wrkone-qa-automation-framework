@@ -8,6 +8,7 @@ import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 
+import Utilities.ExcelUtils;
 import base.baseClass;
 import Utilities.ExtentManager;
 
@@ -35,11 +36,13 @@ public class Hooks extends baseClass {
 
         System.out.println("Scenario browser ready.");
 
+        String reportScenarioName = getReportScenarioName(scenario);
+
         // Extent
-        ExtentManager.createTest(scenario.getName());
+        ExtentManager.createTest(reportScenarioName);
 
         ExtentManager.info(
-                "Scenario started: " + scenario.getName());
+                "Scenario started: " + reportScenarioName);
 
         ExtentManager.info("Browser: Chrome");
 
@@ -62,6 +65,8 @@ public class Hooks extends baseClass {
 
     @After
     public void afterScenario(Scenario scenario) {
+
+                String reportScenarioName = getReportScenarioName(scenario);
 
         System.out.println(
                 "Scenario completed: "
@@ -86,7 +91,7 @@ public class Hooks extends baseClass {
 
             ExtentManager.fail(
                     "Scenario Failed: "
-                            + scenario.getName());
+                            + reportScenarioName);
 
             captureFailureScreenshot(
                     driver,
@@ -102,7 +107,7 @@ public class Hooks extends baseClass {
 
             ExtentManager.pass(
                     "Scenario Passed: "
-                            + scenario.getName());
+                            + reportScenarioName);
         }
 
 
@@ -237,4 +242,24 @@ public class Hooks extends baseClass {
                             + e.getMessage());
         }
     }
+
+        private String getReportScenarioName(Scenario scenario) {
+                String scenarioName = scenario.getName();
+                java.util.regex.Matcher matcher = java.util.regex.Pattern
+                                .compile("Excel Row (\\d+)")
+                                .matcher(scenarioName);
+
+                if (!matcher.find()) {
+                        return scenarioName;
+                }
+
+                int row = Integer.parseInt(matcher.group(1));
+                model.CRMActivity activity = ExcelUtils.getCRMActivity(row);
+
+                return matcher.replaceFirst(
+                                java.util.regex.Matcher.quoteReplacement(
+                                                activity.getActivityType()
+                                                                + " - "
+                                                                + activity.getAssignmentType()));
+        }
 }
