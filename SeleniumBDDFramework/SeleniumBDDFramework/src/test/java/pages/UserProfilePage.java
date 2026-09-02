@@ -44,6 +44,9 @@ public class UserProfilePage {
     private final By updateUser =
             By.xpath("//button[contains(normalize-space(),'Update User')]");
 
+    private final By userUpdatedToast =
+            By.xpath("//*[contains(normalize-space(), 'User updated successfully')]");
+
     // ============================================================
     // MANAGE ROLES
     // ============================================================
@@ -287,43 +290,23 @@ public class UserProfilePage {
         );
     }
 
+    public void verifyDeactivationCompleted() {
+        wait.until(ExpectedConditions.or(
+                ExpectedConditions.visibilityOfElementLocated(userUpdatedToast),
+                ExpectedConditions.urlContains("/users")));
+    }
+
     // ============================================================
     // CONFIRM DEACTIVATION
     // ============================================================
 
     public void confirmDeactivation() {
 
-        System.out.println(
-                "Verifying user update..."
-        );
+        System.out.println("Verifying user update...");
 
-        By successMessage =
-                By.xpath(
-                        "//*[contains(normalize-space(),"
-                        + "'User updated successfully')]"
-                );
-
-        /*
-         * Success toast OR Users page is enough to confirm
-         * that the update operation completed.
-         */
-        boolean updateCompleted = wait.until(
-                ExpectedConditions.or(
-                        ExpectedConditions.visibilityOfElementLocated(
-                                successMessage
-                        ),
-                        ExpectedConditions.urlContains("/users")
-                )
-        );
-
-        Assert.assertTrue(
-                "User update/deactivation was not completed.",
-                updateCompleted
-        );
-
-        System.out.println(
-                "User deactivated successfully."
-        );
+        wait.until(ExpectedConditions.or(
+                ExpectedConditions.visibilityOfElementLocated(userUpdatedToast),
+                ExpectedConditions.urlContains("/users")));
     }
 
     // ============================================================

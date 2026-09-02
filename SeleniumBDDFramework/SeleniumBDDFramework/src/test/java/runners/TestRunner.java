@@ -13,7 +13,7 @@ import io.cucumber.junit.CucumberOptions;
         "stepdefinitions"
     },
 
-    //tags = "@LinkedActivity or @Calendar",
+            //tags = "@LeadCreation",
 
     plugin = {
         "pretty",

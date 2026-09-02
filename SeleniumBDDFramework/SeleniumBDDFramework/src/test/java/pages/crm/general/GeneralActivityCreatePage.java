@@ -1023,6 +1023,11 @@ public class GeneralActivityCreatePage extends ActivityCommonPage {
         );
     }
 
+        public void waitForActivityMessage(String message) {
+                By toast = By.xpath("//*[contains(normalize-space(), '" + message + "')]");
+                wait.until(ExpectedConditions.visibilityOfElementLocated(toast));
+        }
+
 
     // =========================================================
     // DATE CONVERSION

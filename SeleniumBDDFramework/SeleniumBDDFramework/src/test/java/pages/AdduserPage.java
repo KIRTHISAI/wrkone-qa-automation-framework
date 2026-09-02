@@ -89,13 +89,13 @@ public class AdduserPage {
     public void enterUserDetails() {
 
         String[] firstNames = {
-            "Sai", "Kaveri", "Anji", "Ramya", "Jack",
-            "Daina", "Roma", "hema", "Joy", "Edison"
+            "Sai", "Kaveri", "Ankith", "Ramya", "Suma",
+            "Daina", "Roma", "hema", "Joy", "Teja"
         };
 
         String[] lastNames = {
             "Smith", "Jackson", "reddy", "Yadhav", "goud",
-            "Latha", "Anderson", "Thomas", "Jackson", "White"
+            "Latha", "kumar", "Thomas", "Jackson", "Katle"
         };
 
         Random random = new Random();

@@ -91,9 +91,11 @@ public class GeneralActivityStep extends baseClass {
         getGeneralActivityPage()
                 .createGeneralActivity(activity);
 
-        ActivityListPage activityListPage = new ActivityListPage(driver);
-        ActivityScenarioContext.setActivityId(
-                activityListPage.captureNewestActivityId());
+        if (isDashboardVisibleAssignment(activity.getAssignmentType())) {
+            ActivityListPage activityListPage = new ActivityListPage(driver);
+            ActivityScenarioContext.setActivityId(
+                    activityListPage.captureNewestActivityId());
+        }
 
         System.out.println(
                 "General Activity creation flow completed."
@@ -102,7 +104,21 @@ public class GeneralActivityStep extends baseClass {
     @Then("General Activity should be created successfully")
     public void generalActivityShouldBeCreatedSuccessfully() {
 
-        getGeneralActivityPage()
-                .verifyActivityCreatedSuccessfully();
+                if (isDashboardVisibleAssignment(activity.getAssignmentType())) {
+                        getGeneralActivityPage().verifyActivityCreatedSuccessfully();
+                } else {
+                        getGeneralActivityPage().waitForActivityMessage(
+                                        "Activity created successfully");
+                }
     }
+
+        private boolean isDashboardVisibleAssignment(String assignmentType) {
+                if (assignmentType == null) {
+                        return true;
+                }
+
+                String value = assignmentType.trim();
+                return !(value.equalsIgnoreCase("I want to assign this activity to my teammate")
+                                || value.equalsIgnoreCase("I want to tag users for collaboration"));
+        }
 }

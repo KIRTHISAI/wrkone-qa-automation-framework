@@ -1,3 +1,5 @@
+@User
+@UserManagement
 Feature: UserManagement.feature
 
 Scenario: User Management - Create User | Update User | Deactivated User

@@ -6,7 +6,7 @@ Feature: Saved Location CRUD
   @CreateEditDeleteSavedLocation
   Scenario: Create, edit, and delete a saved location
 
-    Given User logs in for CRM Activity from Excel row 3
+    Given User logs in for CRM Activity from Excel row 1
     When User opens Saved Locations
     And User creates saved location "Generic" by searching "Hyderabad, Telangana" and selecting "Hyderabad, Telangana, India"
     Then Saved location "Generic" should show address "Hyderabad, Telangana, India"

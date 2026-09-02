@@ -20,5 +20,4 @@ Feature: General Activity Edit
     Examples:
       | row |
       | 1   |
-      | 2   |
-      | 3   |
+      

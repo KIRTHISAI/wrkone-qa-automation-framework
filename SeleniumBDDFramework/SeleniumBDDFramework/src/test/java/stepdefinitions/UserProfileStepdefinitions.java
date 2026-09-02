@@ -67,4 +67,9 @@ public class UserProfileStepdefinitions extends baseClass {
         new UserListPage(driver)
                 .verifyUserStatus(userName, "Deactivated");
     }
+
+    @Then("User should be deactivated successfully")
+    public void userShouldBeDeactivatedSuccessfully() {
+        getProfile().verifyDeactivationCompleted();
+    }
 }
